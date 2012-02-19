@@ -51,6 +51,7 @@ This plugin is available in the following languages:
 * Norwegian
 * Polish
 * Greek
+* Danish
 
 #### Making the tree available for your vistors
 If you're looking for a version of this page tree that the vistors of your site can use, then check out
