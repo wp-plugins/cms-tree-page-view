@@ -3,7 +3,7 @@
 Plugin Name: CMS Tree Page View
 Plugin URI: http://eskapism.se/code-playground/cms-tree-page-view/
 Description: Adds a CMS-like tree view of all your pages, like the view often found in a page-focused CMS. Use the tree view to edit, view, add pages and search pages (very useful if you have many pages). And with drag and drop you can rearrange the order of your pages. Page management won't get any easier than this!
-Version: 0.8.6
+Version: 0.8.7
 Author: Pär Thernström
 Author URI: http://eskapism.se/
 License: GPL2
@@ -28,7 +28,7 @@ License: GPL2
 #require("functions.php");
 require(dirname(__FILE__)."/functions.php");
 
-define( "CMS_TPV_VERSION", "0.8.6");
+define( "CMS_TPV_VERSION", "0.8.7");
 define( "CMS_TPV_NAME", "CMS Tree Page View");
 
 // This gives the full URL including http. Apparently is does not work with https (gives http-link instead)
@@ -51,6 +51,7 @@ define( "CMS_TPV_URL", $plugin_dir_url);
 
 // on admin init: add styles and scripts
 add_action( 'admin_init', 'cms_tpv_admin_init' );
+add_action( 'admin_enqueue_scripts', 'cms_admin_enqueue_scripts' );
 add_action( 'admin_init', 'cms_tpv_save_settings' );
 
 // Hook onto dashboard and admin menu
