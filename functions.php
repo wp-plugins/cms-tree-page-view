@@ -8,7 +8,7 @@ function cms_tpv_admin_head() {
 
 	global $cms_tpv_view;
 	if (isset($_GET["cms_tpv_view"])) {
-		$cms_tpv_view = $_GET["cms_tpv_view"];
+		$cms_tpv_view = htmlspecialchars($_GET["cms_tpv_view"]);
 	} else {
 		$cms_tpv_view = "all";
 	}
