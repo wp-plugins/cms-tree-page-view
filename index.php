@@ -28,23 +28,21 @@ License: GPL2
 #require("functions.php");
 require(dirname(__FILE__)."/functions.php");
 
-define( "CMS_TPV_VERSION", "0.8.10");
+define( "CMS_TPV_VERSION", "0.8.11");
 define( "CMS_TPV_NAME", "CMS Tree Page View");
 
-// This gives the full URL including http. Apparently is does not work with https (gives http-link instead)
-// On my system it will be: http://localhost/wp/wp-content/plugins/cms-tree-page-view/
-// define( "CMS_TPV_URL", WP_PLUGIN_URL . '/cms-tree-page-view/');
-
-// Define path to this plugin. This needs to be done in a kinda wierd way because of the fact that I use symblinks on my system.
-$plugin_dir_url = plugin_dir_url( __FILE__ ); // Gives wrong path on my system
-$arr_authors_wierd_local_paths = array(
-	"/Users/bonny/Dropbox/Webb/"
-);
-$plugin_dir_url = str_replace($arr_authors_wierd_local_paths, "/", $plugin_dir_url);
-
-// Now we have http://localhost/wp/wp-content/pluginscms-tree-page-view/trunk/
-// So replace last /trunk/ part
-$plugin_dir_url = preg_replace("/\/trunk\/$/", "/", $plugin_dir_url);
+// Find the plugin directory URL
+$aa = __FILE__;
+if ( isset( $mu_plugin ) ) {
+	$aa = $mu_plugin;
+}
+if ( isset( $network_plugin ) ) {
+	$aa = $network_plugin;
+}
+if ( isset( $plugin ) ) {
+	$aa = $plugin;
+}
+$plugin_dir_url = plugin_dir_url(basename($aa)) . 'cms-tree-page-view/';
 
 // There! Now we should have it.
 define( "CMS_TPV_URL", $plugin_dir_url);
