@@ -28,7 +28,7 @@ License: GPL2
 #require("functions.php");
 require(dirname(__FILE__)."/functions.php");
 
-define( "CMS_TPV_VERSION", "0.8.13");
+define( "CMS_TPV_VERSION", "0.8.14");
 define( "CMS_TPV_NAME", "CMS Tree Page View");
 
 // Find the plugin directory URL
