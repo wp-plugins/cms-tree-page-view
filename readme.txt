@@ -93,6 +93,9 @@ Now the tree with the pages will be visible both on the dashboard and in the men
 - Show icons next to the headline of top of pages with the tree
 - Minor CSS changes like a little bit bigger text on the pages and a bit more spacing between each page. Makes a bit easier to drag and drop/move them around.
 - Changed javascript to to use on() istead on live()
+- Removed hoverIntent since that is included in WordPress by default
+- Started using hoverIndent to make the popup with page actions show after a short while for each page. This also means that you can move outside the actions-pop-up for a short while without the pop up being closed - a thing that annoyed me very much.
+- 
 
 = 0.8.14 =
 - Added Estonian translation

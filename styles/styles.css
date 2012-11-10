@@ -248,6 +248,7 @@ li span.cms_tpv_action_add_page {
 	}
 
 .cms_tpv_page_actions {
+	transition: all .25s ease-in-out; -webkit-transition: all .25s ease-in-out; -moz-transition: all .25s ease-in-out; -o-transition: all .25s ease-in-out; -ms-transition: all .25s ease-in-out;
 	width: auto;
 	min-width: 125px;
 	height: auto;
@@ -257,10 +258,21 @@ li span.cms_tpv_action_add_page {
 	white-space: normal;
 	z-index: 100;
 	padding: 7px;
-	display: none;
-	-moz-box-shadow: 2px 2px 8px #ddd; /* FF3.5+ */
+	/*display: none;*/
+	visibility: hidden;
+	-moz-box-shadow: 	2px 2px 8px #ddd;
+	-webkit-box-shadow: 2px 2px 8px #ddd;
+	box-shadow:         2px 2px 8px #ddd;
 	border: 1px solid #bbb;
+	opacity: 0;
 }
+
+.cms_tpv_page_actions.cms_tpv_page_actions_visible {
+	/*display: block;*/
+	visibility: visible;
+	opacity: 1;
+}
+
 .cms_tpv_page_actions p {
 	margin: 0 0 .5em 0;
 }
@@ -339,3 +351,4 @@ li.cms_tpv_user_can_edit_page_no a {
 	padding-left: 10px;
 	border-left: 1px solid #E3E3E3;
 }
+

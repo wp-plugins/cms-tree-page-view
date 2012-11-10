@@ -96,10 +96,45 @@ jQuery(function($) {
 			}
 		});
 		
+		/**
+		 * When tree is loaded: start hoverindenting stuff
+		 */
+		function cms_tpv_tree_loaded(event, data) {
+			//console.log(event);
+			//console.log(data);
+			var $target = $(event.target);
+			var $lis = $target.find("li a");
+			var $hoverIntentWrap = $target.find("div.cmstpv-hoverIntent-wrap");
+
+			$hoverIntentWrap.hoverIntent({    
+				over: cms_tpv_mouseover,
+				out: cms_tpv_mouseout,
+				timeout: 500
+			});
+
+			function cms_tpv_mouseover() {
+				var $this = $(this);
+				var $li = $this.closest("li");
+				//$this.css("background-color", "yellow");
+				console.log("mouseover");
+				cms_tpv_mouseover_li($li.get(0));
+			}
+
+			function cms_tpv_mouseout() {
+				var $this = $(this);
+				var $li = $this.closest("li");
+				//$this.css("background-color", "transparent");
+				console.log("mouseout");
+				cms_tpv_mouseout_li($li.get(0));
+			}
+
+		}
+
+		$elm.bind("loaded.jstree", cms_tpv_tree_loaded);
+		
 		$elm.jstree(treeOptionsTmp);
 
 	});
-	
 
 }); // end ondomready
 
@@ -208,6 +243,22 @@ function cms_tpv_is_dragging() {
 	return eDrag.is(":visible");
 }
 
+/*
+jQuery(".jstree li").live("mouseover", function(e) {
+	var $li = jQuery(this);
+	var li_id = $li.attr("id");
+	cms_tpv_mouseover_li(this);
+});
+// ..and hide them again
+jQuery(".jstree li").live("mouseout", function() {
+	//cms_tpv_current_li_id = null;
+	//console.log("out");
+	cms_tpv_mouseout_li(this);
+});
+*/
+
+
+
 // fired when mouse is over li
 function cms_tpv_mouseover_li(li) {
 
@@ -217,8 +268,11 @@ function cms_tpv_mouseover_li(li) {
 	var div_actions_for_post_type = cms_tpv_get_page_actions_div(li);
 
 	if (cms_tpv_is_dragging() == false) {
-	
-		if (div_actions_for_post_type.is(":visible")) {
+		
+		var is_visible = div_actions_for_post_type.is(":visible");
+		is_visible = false;
+
+		if (is_visible) {
 			// do nada
 		} else {
 
@@ -233,18 +287,7 @@ function cms_tpv_mouseover_li(li) {
 			$edit = div_actions_for_post_type.find(".cms_tpv_action_edit");
 			var editlink = $li.data("editlink");
 			$edit.attr("href", editlink);
-			
-			// check if user is allowed to edit page
-			var $cms_tpv_action_add_and_edit_page = div_actions_for_post_type.find(".cms_tpv_action_add_and_edit_page");
-			if ($li.data("user_can_edit_page") == 0) {
-				// nooope
-				$edit.hide();
-				$cms_tpv_action_add_and_edit_page.hide();
-			} else {
-				$edit.show();
-				$cms_tpv_action_add_and_edit_page.show();
-			}
-			
+
 			// ..and some extras
 			div_actions_for_post_type.find(".cms_tpv_page_actions_modified_time").text($li.data("modified_time"));
 			div_actions_for_post_type.find(".cms_tpv_page_actions_modified_by").text($li.data("modified_author"));
@@ -253,14 +296,33 @@ function cms_tpv_mouseover_li(li) {
 			div_actions_for_post_type.find(".cms_tpv_page_actions_columns").html( unescape($li.data("columns")) );
 			
 			// position and show action div
+			// put it inside cmstpv-hoverIntent-wrap so hoverIndent is cool with it
+			var $overIntentWrap = $li.find("div.cmstpv-hoverIntent-wrap:first");
+			//console.log( $overIntentWrap.length );
 			var $a = $li.find("a");
 			var width = $a.outerWidth(true);
-			$li.append(div_actions_for_post_type);
+			//$li.append(div_actions_for_post_type);
+			
+			$overIntentWrap.append(div_actions_for_post_type);
+			
 			left_pos = width+28;
 			top_pos = -8;
 			div_actions_for_post_type.css("left", left_pos);
 			div_actions_for_post_type.css("top", top_pos);
-			div_actions_for_post_type.show();
+			
+			// check if user is allowed to edit page
+			var $cms_tpv_action_add_and_edit_page = div_actions_for_post_type.find(".cms_tpv_action_add_and_edit_page");
+			if ($li.data("user_can_edit_page") == 0) {
+				// nooope
+				$edit.hide();
+				$cms_tpv_action_add_and_edit_page.hide();
+			} else {
+				//$edit.show();
+				$cms_tpv_action_add_and_edit_page.show();
+				div_actions_for_post_type.addClass("cms_tpv_page_actions_visible");
+			}
+			
+
 		}
 	}
 
@@ -268,24 +330,14 @@ function cms_tpv_mouseover_li(li) {
 
 // fired when mouse leaves li
 function cms_tpv_mouseout_li(li) {
+	/*
+	when / how to hide?
+	*/
 	$li = jQuery(li);
 	$li.find("a:first").removeClass("hover");
-	div_actions.hide();
+	//div_actions.hide();
 }
 
-/*
-jQuery(".jstree li").live("mouseover", function(e) {
-	var $li = jQuery(this);
-	var li_id = $li.attr("id");
-	cms_tpv_mouseover_li(this);
-});
-// ..and hide them again
-jQuery(".jstree li").live("mouseout", function() {
-	//cms_tpv_current_li_id = null;
-	//console.log("out");
-	cms_tpv_mouseout_li(this);
-});
-*/
 
 // hide action links on drag
 jQuery.jstree.drag_start = function() {
@@ -355,6 +407,7 @@ function cms_tpv_bind_clean_node() {
 		var obj = (data.rslt.obj);
 		if (obj && obj != -1) {
 			obj.each(function(i, elm) {
+
 				var li = jQuery(elm);
 				var aFirst = li.find("a:first");
 
@@ -364,36 +417,43 @@ function cms_tpv_bind_clean_node() {
 				} else {
 					li.data("done_cms_tpv_clean_node", true);
 				}
-				// new way:
-				// console.log(li.data("childCount"));
-				// add number of children
-				//if (li.data("jstree")) {
-					var childCount = li.data("childCount");
-					if (childCount > 0) {
-						aFirst.append("<span title='" + childCount + " " + cmstpv_l10n.child_pages + "' class='child_count'>("+childCount+")</span>");
-					}
-					
-					// add protection type
-					var rel = li.data("rel");
-					if(rel == "password") {
-						aFirst.find("ins").after("<span class='post_protected' title='" + cmstpv_l10n.Password_protected_page + "'>&nbsp;</span>");
-					}
-	
-					// add page type
-					var post_status = li.data("post_status");
-					// post_status can be any value because of plugins like Edit flow
-					// check if we have an existing translation for the string, otherwise use the post status directly
-					var post_status_to_show = "";
-					if (post_status_to_show = cmstpv_l10n["Status_"+post_status + "_ucase"]) {
-						// it's ok
-					} else {
-						post_status_to_show = post_status;
-					}
-					if (post_status != "publish") {
-						aFirst.find("ins").first().after("<span class='post_type post_type_"+post_status+"'>" + post_status_to_show + "</span>");
-					}
-				//}
+
+				var childCount = li.data("childCount");
+				if (childCount > 0) {
+					aFirst.append("<span title='" + childCount + " " + cmstpv_l10n.child_pages + "' class='child_count'>("+childCount+")</span>");
+				}
 				
+				// add protection type
+				var rel = li.data("rel");
+				if(rel == "password") {
+					aFirst.find("ins").after("<span class='post_protected' title='" + cmstpv_l10n.Password_protected_page + "'>&nbsp;</span>");
+				}
+
+				// add page type
+				var post_status = li.data("post_status");
+				// post_status can be any value because of plugins like Edit flow
+				// check if we have an existing translation for the string, otherwise use the post status directly
+				var post_status_to_show = "";
+				if (post_status_to_show = cmstpv_l10n["Status_"+post_status + "_ucase"]) {
+					// it's ok
+				} else {
+					post_status_to_show = post_status;
+				}
+				if (post_status != "publish") {
+					aFirst.find("ins").first().after("<span class='post_type post_type_"+post_status+"'>" + post_status_to_show + "</span>");
+				}
+
+				// To make hoverindent work we must wrap something around the a bla bla bla
+
+				//li.find()
+				var div_wrap = jQuery("<div class='cmstpv-hoverIntent-wrap' />");
+				div_wrap.css({
+					"display": "inline-block",
+					"xwidth": "100%"
+				});
+				aFirst.wrap(div_wrap);
+
+
 			});
 		}
 	});
