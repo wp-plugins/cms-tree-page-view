@@ -3,7 +3,7 @@ Contributors: eskapism, MarsApril
 Donate link: http://eskapism.se/sida/donate/
 Tags: page, pages, posts, custom posts, tree, cms, dashboard, overview, drag-and-drop, rearrange, management, manage, admin
 Requires at least: 3.0
-Tested up to: 3.4.2
+Tested up to: 3.5
 Stable tag: 0.8.14
 
 Adds a tree of all your pages or custom posts. Use drag & drop to reorder your pages, and edit, view, add, and search your pages.
@@ -85,6 +85,14 @@ Now the tree with the pages will be visible both on the dashboard and in the men
 7. Users of WPML can find all their languages in the tree
 
 == Changelog ==
+
+= 0.8.x =
+- Only output scripts and styles on pages that the plugin uses. This should speed up other parts of the WordPress admin a little tiny itsy bitsy bit.
+- Added a hopefully not to spammy box about donation and stuff. Hopefully it it encourages some of you to give it a good review or maybe even donate some money. I've spent a lot, lot, LOT of time developing this plugin you know ;)
+- Changed title on dashboard widgets and changed name of the menu item under each supported post type. Makes the titles/names look/feel a bit less dorky.
+- Show icons next to the headline of top of pages with the tree
+- Minor CSS changes like a little bit bigger text on the pages and a bit more spacing between each page. Makes a bit easier to drag and drop/move them around.
+- Changed javascript to to use on() istead on live()
 
 = 0.8.14 =
 - Added Estonian translation

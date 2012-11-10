@@ -3,11 +3,31 @@
 var cms_tpv_tree, treeOptions, div_actions, cms_tpv_current_li_id = null;
 jQuery(function($) {
 	
-	cms_tpv_tree = $(".cms_tpv_container");
-	div_actions = $(".cms_tpv_page_actions");
+	cms_tpv_tree = $("div.cms_tpv_container");
+	div_actions = $("div.cms_tpv_page_actions");
+
+	// try to override css
+	var height = "20", height2 = "18", ins_height = "18";
+	css_string = '' + 
+		'.jstree ul, .jstree li { display:block; margin:0 0 0 0; padding:0 0 0 0; list-style-type:none; } ' + 
+		'.jstree li { display:block; min-height:'+height+'px; line-height:'+height+'px; white-space:nowrap; margin-left:18px; min-width:18px; } ' + 
+		'.jstree-rtl li { margin-left:0; margin-right:18px; } ' + 
+		'.jstree > ul > li { margin-left:0px; } ' + 
+		'.jstree-rtl > ul > li { margin-right:0px; } ' + 
+		'.jstree ins { display:inline-block; text-decoration:none; width:18px; height:'+height+'px; margin:0 0 0 0; padding:0; } ' + 
+		'.jstree a { display:inline-block; line-height:'+height2+'px; height:'+height2+'px; color:black; white-space:nowrap; text-decoration:none; padding:1px 2px; margin:0; } ' + 
+		'.jstree a:focus { outline: none; } ' + 
+		'.jstree a > ins { height:'+ins_height+'px; width:16px; } ' + 
+		'.jstree a > .jstree-icon { margin-right:3px; } ' + 
+		'.jstree-rtl a > .jstree-icon { margin-left:3px; margin-right:0; } ' + 
+		'li.jstree-open > ul { display:block; } ' + 
+		'li.jstree-closed > ul { display:none; } ';
+	$.vakata.css.add_sheet({
+		str : css_string,
+		title : "jstree_cms_tpv"
+	});
 
 	treeOptions = {
-		xplugins: ["cookie","ui","crrm","themes","json_data","search","types","dnd"],
 		plugins: ["themes","json_data","cookies","search","dnd", "types"],
 		core: {
 			"html_titles": true
@@ -17,55 +37,22 @@ jQuery(function($) {
 				"url": ajaxurl + CMS_TPV_AJAXURL + CMS_TPV_VIEW,
 				// this function is executed in the instance's scope (this refers to the tree instance)
 				// the parameter is the node being loaded (may be -1, 0, or undefined when loading the root nodes)
-				"data" : function (n) { 
+				"data" : function (n) {
 					// the result is fed to the AJAX request `data` option
 					if (n.data) {
 						var post_id = n.data("post_id");
 						return {
 							"id": post_id
-						}
+						};
 					}
 				}
 
 			}
-			/*
-			// data can be initially set like this
-			// but it has to be set by type...
-			"data": [{
-				"data": {
-					"title": "I am a new page",
-					"attr": {
-						"href": "http://localhost/wp-admin/post.php?post=1060&action=edit",
-						"xid": "cms-tpv-1060"
-					},
-					"xicon": "http://localhost/wp-content/plugins/cms-tree-page-view/images/page_white_text.png"
-				},
-				"attr": {
-					"xhref": "http://localhost/wp-admin/post.php?post=1060&action=edit",
-					"id": "cms-tpv-1060",
-					"xtitle": "Click to edit. Drag to move.",
-					"class": "cms_tpv_user_can_edit_page_yes"
-				},
-								"metadata": {
-					"id": "cms-tpv-1060",
-					"post_id": "1060",
-					"post_type": "page",
-					"post_status": "publish",
-					"rel": "publish",
-					"childCount": 0,
-					"permalink": "http://localhost/i-am-a-new-page/",
-					"editlink": "http://localhost/wp-admin/post.php?post=1060&action=edit",
-					"modified_time": "August 15, 2010",
-					"modified_author": "admin",
-					"columns": "%3Cdl%3E%3Cdt%3EComments%3C%2Fdt%3E%3Cdd%3E%3Cdiv%20class%3D%22post-com-count-wrapper%22%3E%3Ca%20href%3D%27edit-comments.php%3Fp%3D1060%27%20title%3D%270%20pending%27%3E%3Cspan%3E0%3C%2Fspan%3E%3C%2Fa%3E%3C%2Fdiv%3E%3C%2Fdd%3E%3C%2Fdl%3E",
-					"user_can_edit_page": "1"
-				}
-				
-			}
-		]*/
+
 		},
 		"themes": {
-			"theme": "wordpress"
+			"theme": "wordpress",
+			"dots": false
 		},
 		"search": {
 			"ajax" : {
@@ -75,7 +62,7 @@ jQuery(function($) {
 		},
 		"dnd": {
 		}
-	}
+	};
 
 	if (cms_tpv_tree.length > 0) {
 		cms_tpv_bind_clean_node(); // don't remember why I run this here.. :/
@@ -99,11 +86,11 @@ jQuery(function($) {
 						"valid_children" : [ "none" ]
 					}
 				}
-			}
+			};
 		}
 		
 		$elm.bind("search.jstree", function (event, data) {
-			if (data.rslt.nodes.length == 0) {
+			if (data.rslt.nodes.length === 0) {
 				// no hits. doh.
 				$(this).closest(".cms_tpv_wrapper").find(".cms_tree_view_search_form_no_hits").fadeIn("fast");
 			}
@@ -136,8 +123,9 @@ function cms_tpv_get_wrapper(elm) {
 }
 
 
-// add page after
-jQuery(".cms_tpv_action_add_page_after").live("click", function() {
+// Click on link to add page after the current page
+jQuery(document).on("click", "a.cms_tpv_action_add_page_after", function(e) {
+
 	var $this = jQuery(this);
 	var post_type = cms_tpv_get_post_type(this);
 	var selected_lang = cms_tpv_get_wpml_selected_lang(this);
@@ -170,8 +158,8 @@ jQuery(".cms_tpv_action_add_page_after").live("click", function() {
 	return false;
 });
 
-// add page inside
-jQuery(".cms_tpv_action_add_page_inside").live("click", function() {
+// Click on link to add page insde another page
+jQuery(document).on("click", "a.cms_tpv_action_add_page_inside", function(e) {
 	var $this = jQuery(this);
 	var post_type = cms_tpv_get_post_type(this);
 	var selected_lang = cms_tpv_get_wpml_selected_lang(this);
@@ -285,35 +273,7 @@ function cms_tpv_mouseout_li(li) {
 	div_actions.hide();
 }
 
-// mouse over, show actions
-// but only if the mouse not already is over the li (don't know why it fires multiple times, but it does)
-// 29 August, 2010 this worked nice but it had problems with child-lis...
 /*
-jQuery(".jstree li").live("mouseenter", function(e) {
-
-	//console.log("mouseenter");
-	var $li = jQuery(this);
-	var li_id = $li.attr("id");
-	
-	// add hoverIntent, if not prev. attached
-	if ($li.data("hasHoverIntent")) {
-		// already got it
-	} else {
-		$li.data("hasHoverIntent", true);
-		$li.hoverIntent(function() {
-			// console.log("over");
-			cms_tpv_mouseover_li(this);
-		}, function() {
-			console.log("out");
-			//cms_tpv_mouseout_li(this);
-		});
-		// lastlt trigger mouseenter again so the popup will show
-		$li.trigger("mouseover");
-	}
-
-});
-*/
-
 jQuery(".jstree li").live("mouseover", function(e) {
 	var $li = jQuery(this);
 	var li_id = $li.attr("id");
@@ -325,7 +285,7 @@ jQuery(".jstree li").live("mouseout", function() {
 	//console.log("out");
 	cms_tpv_mouseout_li(this);
 });
-
+*/
 
 // hide action links on drag
 jQuery.jstree.drag_start = function() {
@@ -424,7 +384,7 @@ function cms_tpv_bind_clean_node() {
 					// post_status can be any value because of plugins like Edit flow
 					// check if we have an existing translation for the string, otherwise use the post status directly
 					var post_status_to_show = "";
-					if (post_status_to_show = cmstpv_l10n["Status_"+post_status]) {
+					if (post_status_to_show = cmstpv_l10n["Status_"+post_status + "_ucase"]) {
 						// it's ok
 					} else {
 						post_status_to_show = post_status;
@@ -439,13 +399,14 @@ function cms_tpv_bind_clean_node() {
 	});
 }
 
-// search: perform
-jQuery(".cms_tree_view_search_form").live("submit", function() {
+// Perform search when submiting form
+jQuery(document).on("submit", "form.cms_tree_view_search_form", function(e) {
+	
 	var $wrapper = jQuery(this).closest(".cms_tpv_wrapper");
 	$wrapper.find(".cms_tpv_search_no_hits").hide();
 	var s = $wrapper.find(".cms_tree_view_search").attr("value");
 	s = jQuery.trim( s );
-	// search, oh the mighty search!
+
 	if (s) {
 		$wrapper.find(".cms_tree_view_search_form_no_hits").fadeOut("fast");
 		$wrapper.find(".cms_tree_view_search_form_working").fadeIn("fast");
@@ -458,13 +419,15 @@ jQuery(".cms_tree_view_search_form").live("submit", function() {
 		$wrapper.find(".cms_tree_view_search_form_reset").fadeOut("fast");
 	}
 	$wrapper.find(".cms_tree_view_search_form_working").fadeOut("fast");
+	
 	return false;
+
 });
 
-// search: reset
-jQuery(".cms_tree_view_search_form_reset").live("click", function() {
+// Reset search when click on x-link
+jQuery(document).on("click", "a.cms_tree_view_search_form_reset", function(e) {
 	var $wrapper = jQuery(this).closest(".cms_tpv_wrapper");
-	$wrapper.find(".cms_tree_view_search").val("")
+	$wrapper.find(".cms_tree_view_search").val("");
 	$wrapper.find(".cms_tpv_container").jstree("clear_search");
 	$wrapper.find(".cms_tree_view_search_form_reset").fadeOut("fast");
 	$wrapper.find(".cms_tree_view_search_form_no_hits").fadeOut("fast");
@@ -472,34 +435,37 @@ jQuery(".cms_tree_view_search_form_reset").live("click", function() {
 });
 
 // open/close links
-jQuery(".cms_tpv_open_all").live("click", function() {
+jQuery(document).on("click", "a.cms_tpv_open_all", function(e) {
 	var $wrapper = jQuery(this).closest(".cms_tpv_wrapper");
 	$wrapper.find(".cms_tpv_container").jstree("open_all");
 	return false;
 });
-jQuery(".cms_tpv_close_all").live("click", function() {
+
+jQuery(document).on("click", "a.cms_tpv_close_all", function(e) {
 	var $wrapper = jQuery(this).closest(".cms_tpv_wrapper");
 	$wrapper.find(".cms_tpv_container").jstree("close_all");
 	return false;
 });
 
 // view all or public or trash
-jQuery(".cms_tvp_view_all").live("click", function() {
+jQuery(document).on("click", "a.cms_tvp_view_all", function(e) {
 	cms_tvp_set_view("all", this);
 	return false;
 });
-jQuery(".cms_tvp_view_public").live("click", function() {
+
+jQuery(document).on("click", "a.cms_tvp_view_public", function(e) {
 	cms_tvp_set_view("public", this);
 	return false;
 });
-jQuery(".cms_tvp_view_trash").live("click", function() {
+
+jQuery(document).on("click", "a.cms_tvp_view_trash", function() {
 	cms_tvp_set_view("trash", this);
 	return false;
 });
 
 
 // change lang
-jQuery("a.cms_tvp_switch_lang").live("click", function(e) {
+jQuery(document).on("click", "a.cms_tvp_switch_lang", function(e) {
 	$wrapper = cms_tpv_get_wrapper(this);
 	$wrapper.find("ul.cms_tvp_switch_langs a").removeClass("current");
 	jQuery(this).addClass("current");
@@ -517,13 +483,15 @@ jQuery("a.cms_tvp_switch_lang").live("click", function(e) {
 });
 
 function cms_tpv_get_current_view(elm) {
+	
 	$wrapper = cms_tpv_get_wrapper(elm);
+	
 	if ($wrapper.find(".cms_tvp_view_all").hasClass("current")) {
 		return "all";
 	} else if ($wrapper.find(".cms_tvp_view_public").hasClass("current")) {
 		return "public";
 	} else {
-		return false; // like unknown 
+		return false; // like unknown
 	}
 
 }

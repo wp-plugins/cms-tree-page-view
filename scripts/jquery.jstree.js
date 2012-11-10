@@ -66,6 +66,7 @@
 					tmp.setAttribute('type',"text/css");
 					if(opts.title) { tmp.setAttribute("id", opts.title + "-stylesheet"); }
 				}
+
 				if(tmp.styleSheet) {
 					if(is_new) { 
 						document.getElementsByTagName("head")[0].appendChild(tmp); 
@@ -267,6 +268,7 @@
 
 	// load the css when DOM is ready
 	$(function() {
+
 		// code is copied from jQuery ($.browser is deprecated + there is a bug in IE)
 		var u = navigator.userAgent.toLowerCase(),
 			v = (u.match( /.+?(?:rv|it|ra|ie)[\/: ]([\d.]+)/ ) || [0,'0'])[1],

@@ -6,6 +6,8 @@
 
 function cms_tpv_admin_head() {
 
+	if (!cms_tpv_is_one_of_our_pages()) return;
+
 	global $cms_tpv_view;
 	if (isset($_GET["cms_tpv_view"])) {
 		$cms_tpv_view = htmlspecialchars($_GET["cms_tpv_view"]);
@@ -34,47 +36,85 @@ function cms_tpv_admin_head() {
 	<?php
 }
 
+/**
+ * Detect if we are on a page that use CMS Tree Page View
+ */
+function cms_tpv_is_one_of_our_pages() {
+
+	$options = cms_tpv_get_options();
+	$post_type = cms_tpv_get_selected_post_type();
+	$current_screen = get_current_screen(); # sf_d($current_screen);
+	$is_plugin_page = FALSE;
+
+	// Check if current page is one of the ones defined in $options["menu"]
+	foreach ($options["menu"] as $one_post_type) {
+		if ( strpos($current_screen->id, "_page_cms-tpv-page-{$one_post_type}") !== FALSE) {
+			$is_plugin_page = TRUE;
+			break;
+		}
+	}
+
+	if ($current_screen->id === "settings_page_cms-tpv-options") {
+		// Is settings page for plugin
+		$is_plugin_page = TRUE;
+	} elseif ($current_screen->id === "dashboard" && !empty($options["dashboard"])) {
+		$is_plugin_page = TRUE;
+	}
+
+	return $is_plugin_page;
+
+}
+
+/**
+ * Add styles and scripts to pages that use the plugin
+ */
 function cms_admin_enqueue_scripts() {
 
-	wp_enqueue_script( "jquery-cookie", CMS_TPV_URL . "scripts/jquery.biscuit.js", array("jquery")); // renamed from cookie to fix problems with mod_security
-	wp_enqueue_script( "jquery-jstree", CMS_TPV_URL . "scripts/jquery.jstree.js", false, CMS_TPV_VERSION);
-	wp_enqueue_script( "jquery-alerts", CMS_TPV_URL . "scripts/jquery.alerts.js", false, CMS_TPV_VERSION);
-	wp_enqueue_script( "jquery-hoverintent", CMS_TPV_URL . "scripts/jquery.hoverIntent.minified.js", false, CMS_TPV_VERSION);
-	#wp_enqueue_script( "jquery-ui-dialog", CMS_TPV_URL . "scripts/jquery.ui.dialog.min.js", false, CMS_TPV_VERSION);
-	wp_enqueue_script( "cms_tree_page_view", CMS_TPV_URL . "scripts/cms_tree_page_view.js", false, CMS_TPV_VERSION);	
 
-	// @todo: only load these when we do show a tree, ie. on the dashboard or showing the tree for a post type
-	// see: http://devpress.com/blog/how-to-load-javascript-in-the-wordpress-admin/
-	// admin_enqueue_scripts-hook?
-	wp_enqueue_style( "cms_tpv_styles", CMS_TPV_URL . "styles/styles.css", false, CMS_TPV_VERSION );
-	wp_enqueue_style( "jquery-alerts", CMS_TPV_URL . "styles/jquery.alerts.css", false, CMS_TPV_VERSION );
+	if (cms_tpv_is_one_of_our_pages()) {
 
-	$oLocale = array(
-		"Enter_title_of_new_page" => __("Enter title of new page", 'cms-tree-page-view'),
-		"child_pages"  => __("child pages", 'cms-tree-page-view'),
-		"Edit_page"  => __("Edit page", 'cms-tree-page-view'),
-		"View_page"  => __("View page", 'cms-tree-page-view'),
-		"Edit"  => __("Edit", 'cms-tree-page-view'),
-		"View"  => __("View", 'cms-tree-page-view'),
-		"Add_page"  => __("Add page", 'cms-tree-page-view'),
-		"Add_new_page_after"  => __("Add new page after", 'cms-tree-page-view'),
-		"after"  => __("after", 'cms-tree-page-view'),
-		"inside"  => __("inside", 'cms-tree-page-view'),
-		"Can_not_add_sub_page_when_status_is_draft"  => __("Sorry, can't create a sub page to a page with status \"draft\".", 'cms-tree-page-view'),
-		"Can_not_add_sub_page_when_status_is_trash"  => __("Sorry, can't create a sub page to a page with status \"trash\".", 'cms-tree-page-view'),
-		"Can_not_add_page_after_when_status_is_trash"  => __("Sorry, can't create a page after a page with status \"trash\".", 'cms-tree-page-view'),
-		"Add_new_page_inside"  => __("Add new page inside", 'cms-tree-page-view'),
-		"Status_draft" => __("draft", 'cms-tree-page-view'),
-		"Status_future" => __("future", 'cms-tree-page-view'),
-		"Status_password" => __("protected", 'cms-tree-page-view'),	// is "protected" word better than "password" ?
-		"Status_pending" => __("pending", 'cms-tree-page-view'),
-		"Status_private" => __("private", 'cms-tree-page-view'),
-		"Status_trash" => __("trash", 'cms-tree-page-view'),
-		"Password_protected_page" => __("Password protected page", 'cms-tree-page-view'),
-		"Adding_page" => __("Adding page...", 'cms-tree-page-view'),
-	);
-	wp_localize_script( "cms_tree_page_view", 'cmstpv_l10n', $oLocale);
+		wp_enqueue_script( "jquery-cookie", CMS_TPV_URL . "scripts/jquery.biscuit.js", array("jquery")); // renamed from cookie to fix problems with mod_security
+		wp_enqueue_script( "jquery-jstree", CMS_TPV_URL . "scripts/jquery.jstree.js", false, CMS_TPV_VERSION);
+		wp_enqueue_script( "jquery-alerts", CMS_TPV_URL . "scripts/jquery.alerts.js", false, CMS_TPV_VERSION);
+		wp_enqueue_script( "jquery-hoverintent", CMS_TPV_URL . "scripts/jquery.hoverIntent.minified.js", false, CMS_TPV_VERSION);
+		wp_enqueue_script( "cms_tree_page_view", CMS_TPV_URL . "scripts/cms_tree_page_view.js", false, CMS_TPV_VERSION);	
 
+		wp_enqueue_style( "cms_tpv_styles", CMS_TPV_URL . "styles/styles.css", false, CMS_TPV_VERSION );
+		wp_enqueue_style( "jquery-alerts", CMS_TPV_URL . "styles/jquery.alerts.css", false, CMS_TPV_VERSION );
+
+		$oLocale = array(
+			"Enter_title_of_new_page" => __("Enter title of new page", 'cms-tree-page-view'),
+			"child_pages"  => __("child pages", 'cms-tree-page-view'),
+			"Edit_page"  => __("Edit page", 'cms-tree-page-view'),
+			"View_page"  => __("View page", 'cms-tree-page-view'),
+			"Edit"  => __("Edit", 'cms-tree-page-view'),
+			"View"  => __("View", 'cms-tree-page-view'),
+			"Add_page"  => __("Add page", 'cms-tree-page-view'),
+			"Add_new_page_after"  => __("Add new page after", 'cms-tree-page-view'),
+			"after"  => __("after", 'cms-tree-page-view'),
+			"inside"  => __("inside", 'cms-tree-page-view'),
+			"Can_not_add_sub_page_when_status_is_draft"  => __("Sorry, can't create a sub page to a page with status \"draft\".", 'cms-tree-page-view'),
+			"Can_not_add_sub_page_when_status_is_trash"  => __("Sorry, can't create a sub page to a page with status \"trash\".", 'cms-tree-page-view'),
+			"Can_not_add_page_after_when_status_is_trash"  => __("Sorry, can't create a page after a page with status \"trash\".", 'cms-tree-page-view'),
+			"Add_new_page_inside"  => __("Add new page inside", 'cms-tree-page-view'),
+			"Status_draft" => __("draft", 'cms-tree-page-view'),
+			"Status_future" => __("future", 'cms-tree-page-view'),
+			"Status_password" => __("protected", 'cms-tree-page-view'),	// is "protected" word better than "password" ?
+			"Status_pending" => __("pending", 'cms-tree-page-view'),
+			"Status_private" => __("private", 'cms-tree-page-view'),
+			"Status_trash" => __("trash", 'cms-tree-page-view'),
+			"Status_draft_ucase" => ucfirst( __("draft", 'cms-tree-page-view') ),
+			"Status_future_ucase" => ucfirst( __("future", 'cms-tree-page-view') ),
+			"Status_password_ucase" => ucfirst( __("protected", 'cms-tree-page-view') ),	// is "protected" word better than "password" ?
+			"Status_pending_ucase" => ucfirst( __("pending", 'cms-tree-page-view') ),
+			"Status_private_ucase" => ucfirst( __("private", 'cms-tree-page-view') ),
+			"Status_trash_ucase" => ucfirst( __("trash", 'cms-tree-page-view') ),
+			"Password_protected_page" => __("Password protected page", 'cms-tree-page-view'),
+			"Adding_page" => __("Adding page...", 'cms-tree-page-view'),
+		);
+		wp_localize_script( "cms_tree_page_view", 'cmstpv_l10n', $oLocale);
+
+	}
 
 }
 
@@ -96,22 +136,11 @@ function cms_tpv_save_settings() {
 		$options["menu"] = (array) $_POST["post-type-menu"];
 		update_option('cms_tpv_options', $options); // enable this to show box
 	}
-	/*
- [post-type-dashboard] => Array
-        (
-            [0] => post
-            [1] => page
-        )
-
-    [post-type-menu] => Array
-        (
-            [0] => post
-            [1] => page
-        )
-
-	*/
 }
 
+/**
+ * Add widget to dashboard
+ */
 function cms_tpv_wp_dashboard_setup() {
 	// add dashboard to capability edit_pages only
 	if (current_user_can("edit_pages")) {
@@ -119,7 +148,8 @@ function cms_tpv_wp_dashboard_setup() {
 		foreach ($options["dashboard"] as $one_dashboard_post_type) {
 			$post_type_object = get_post_type_object($one_dashboard_post_type);
 			$new_func_name = create_function('', "cms_tpv_dashboard('$one_dashboard_post_type');");
-			wp_add_dashboard_widget( "cms_tpv_dashboard_widget_{$one_dashboard_post_type}", $post_type_object->labels->name . " Tree View", $new_func_name );
+			$widget_name = _x(sprintf('%1$s Tree', $post_type_object->labels->name), "name of dashboard", "cms-tree-page-view");
+			wp_add_dashboard_widget( "cms_tpv_dashboard_widget_{$one_dashboard_post_type}", $widget_name, $new_func_name );
 		}
 	}
 }
@@ -129,7 +159,7 @@ function cms_tpv_wp_dashboard_setup() {
  * Output on dashboard
  */
 function cms_tpv_dashboard($post_type = "") {
-	// cms_tpv_show_annoying_box();
+	//cms_tpv_show_annoying_box();
 	cms_tpv_print_common_tree_stuff($post_type);
 }
 
@@ -145,8 +175,10 @@ function cms_tpv_admin_menu() {
 			$slug = "edit.php?post_type=$one_menu_post_type";
 		}
 		$post_type_object = get_post_type_object($one_menu_post_type);
-		// print_r($post_type_object);
-		add_submenu_page($slug, $post_type_object->labels->name . " Tree View", $post_type_object->labels->name . " Tree View", $post_type_object->cap->edit_posts, "cms-tpv-page-$one_menu_post_type", "cms_tpv_pages_page");
+		
+		$menu_name = _x("Tree View", "name in menu", "cms-tree-page-view");
+		$page_title = _x(sprintf('%1$s Tree View', $post_type_object->labels->name), "title on page with tree", "cms-tree-page-view");
+		add_submenu_page($slug, $page_title, $menu_name, $post_type_object->cap->edit_posts, "cms-tpv-page-$one_menu_post_type", "cms_tpv_pages_page");
 	}
 
 	add_submenu_page( 'options-general.php' , CMS_TPV_NAME, CMS_TPV_NAME, "administrator", "cms-tpv-options", "cms_tpv_options");
@@ -159,31 +191,11 @@ function cms_tpv_admin_menu() {
  */
 function cms_tpv_options() {
 
-/*
-// Just som testing stuff
-$args = array(
-	"numberposts" => "-1",
-	"orderby" => "menu_order",
-	"order" => "ASC",
-	"caller_get_posts" => 1, // get sticky posts in natural order (or so I understand it anyway)
-	"post_status" => "publish", // "any" seems to get all but auto-drafts
-	"post_type" => "page"
-);
-$posts = get_pages($args); // works
-// $posts = get_posts($args); // does not work
-var_dump($posts);
-echo "num of posts: " . sizeof($posts);
-foreach ($posts as $one_post) {
-	#bonny_d($one_post);
-	echo "<br><br>title: " . esc_html($one_post->post_title);
-	echo "<br>status: " . $one_post->post_status;
-	echo "<br>type: " . $one_post->post_type;
-}
-// */
-
 	?>
 	<div class="wrap">
 	
+		<?php cms_tpv_show_annoying_box(); ?>
+		
 		<h2><?php echo CMS_TPV_NAME ?> <?php _e("settings", 'cms-tree-page-view') ?></h2>
 
 		<form method="post" action="options.php">
@@ -257,7 +269,7 @@ function cms_tpv_get_selected_post_type() {
 	}
 	if (!$post_type) {
 		// no post type, happens with ozh admin drop down, so get it via page instead
-		$page = $_GET["page"];
+		$page = isset($_GET["page"]) ? $_GET["page"] : "";
 		$post_type = str_replace("cms-tpv-page-", "", $page);
 	}
 	
@@ -451,10 +463,14 @@ function cms_tpv_pages_page() {
 
 	$post_type = cms_tpv_get_selected_post_type();
 	$post_type_object = get_post_type_object($post_type);
-
+	
 	?>
 	<div class="wrap">
-		<h2><?php echo ($post_type_object->labels->name); ?> Tree View</h2>
+		<?php echo get_screen_icon(); ?>
+		<h2><?php
+			$page_title = _x(sprintf('%1$s Tree View', $post_type_object->labels->name), "headline of page with tree", "cms-tree-page-view");
+			echo $page_title;
+		?></h2>
 		
 		<?php
 		/*
@@ -599,6 +615,9 @@ function cms_tpv_print_childs($pageID, $view = "all", $arrOpenChilds = null, $po
 
 		global $post;
 		
+		// Translated post statuses
+		$post_statuses = get_post_statuses();
+
 		#cms_tpv_firedebug(timer_stop());
 		
 		?>[<?php
@@ -727,6 +746,7 @@ function cms_tpv_print_childs($pageID, $view = "all", $arrOpenChilds = null, $po
 					"post_id": "<?php echo $onePage->ID ?>",
 					"post_type": "<?php echo $onePage->post_type ?>",
 					"post_status": "<?php echo $onePage->post_status ?>",
+					"post_status_translated": "<?php echo isset($post_statuses[$onePage->post_status]) ? $post_statuses[$onePage->post_status] : $onePage->post_status  ?>",
 					"rel": "<?php echo $rel ?>",
 					"childCount": <?php echo ( !empty( $arrChildPages ) ) ? sizeof( $arrChildPages ) : 0 ; ?>,
 					"permalink": "<?php echo htmlspecialchars_decode(get_permalink($onePage->ID)) ?>",
@@ -1043,7 +1063,9 @@ function cms_tpv_move_page() {
  * Show a box with some dontate-links and stuff
  */
 function cms_tpv_show_annoying_box() {
-	#update_option('cms_tpv_show_annoying_little_box', 1); // enable this to show box
+	
+	// update_option('cms_tpv_show_annoying_little_box', 1); // enable this to show box while testing
+
 	if ( isset($_GET["action"]) && "cms_tpv_remove_annoying_box" == $_GET["action"] ) {
 		$show_box = 0;
 		update_option('cms_tpv_show_annoying_little_box', $show_box);
@@ -1053,9 +1075,28 @@ function cms_tpv_show_annoying_box() {
 	if ($show_box) {
 		?>
 		<div class="cms_tpv_annoying_little_box">
-			<p class="cms_tpv_annoying_little_box_close"><a href="<?php echo add_query_arg("action", "cms_tpv_remove_annoying_box")?>"><?php _e("Close", 'cms-tree-page-view') ?></a></p>
-			<p><?php _e('<strong>Thank you for using this plugin!</strong> If you need help please check out the <a href="http://eskapism.se/code-playground/cms-tree-page-view/?utm_source=wordpress&utm_medium=banner&utm_campaign=promobox">plugin homepage</a> or the <a href="http://wordpress.org/tags/cms-tree-page-view?forum_id=10">support forum</a>.', 'cms-tree-page-view') ?></p>
-			<p><?php _e('If you like this plugin, please <a href="http://eskapism.se/sida/donate/?utm_source=wordpress&utm_medium=banner&utm_campaign=promobox">support my work by donating</a> - or at least say something nice about this plugin in a blog post or tweet.', 'cms-tree-page-view') ?></p>
+
+			<h3><?php _e('Thanks for using my plugin', 'cms-tree-page-view') ?></h3>
+			<p class="cms_tpv_annoying_little_box_gravatar"><a href="https://twitter.com/eskapism"><?php echo get_avatar("par.thernstrom@gmail.com", '64'); ?></a></p>
+			<p><?php _e('Hi there! I just wanna says thanks for using my plugin. I hope you like it as much as I do.', 'cms-tree-page-view') ?></p>
+			<p class="cms_tpv_annoying_little_box_author"><a href="https://twitter.com/eskapism"><?php _e('/Pär Thernström - plugin creator', 'cms-tree-page-view') ?></a></p>
+
+			<h3><?php _e('I like this plugin<br>– how can I thank you?', 'cms-tree-page-view') ?></h3>
+			<p><?php _e('There are serveral ways for you to show your appreciation:', 'cms-tree-page-view') ?></p>
+			<ul>
+				<li><?php printf(__('<a href="%1$s">Give it a nice review</a> over at the WordPress Plugin Directory', 'cms-tree-page-view'), "http://wordpress.org/support/view/plugin-reviews/cms-tree-page-view") ?></li>
+				<li><?php printf(__('<a href="%1$s">Give a donation</a> – any amount will make me happy', 'cms-tree-page-view'), "http://eskapism.se/sida/donate/?utm_source=wordpress&utm_medium=banner&utm_campaign=promobox") ?></li>
+				<li><?php printf(__('<a href="%1$s">Post a nice tweet</a> or make a nice blog post about the plugin', 'cms-tree-page-view'), "https://twitter.com/intent/tweet?text=I really like the CMS Tree Page View plugin for WordPress http://wordpress.org/extend/plugins/cms-tree-page-view/") ?></li>
+			</ul>
+
+			<h3><?php _e('Support', 'cms-tree-page-view') ?></h3>
+			<p><?php printf(__('Plese see the <a href="%1$s">support forum</a> for help.', 'cms-tree-page-view'), "http://wordpress.org/support/plugin/cms-tree-page-view") ?></p>
+
+			<p class="cms_tpv_annoying_little_box_close">
+				<a href="<?php echo add_query_arg("action", "cms_tpv_remove_annoying_box")?>">
+					<?php _e("Hide until next upgrade", 'cms-tree-page-view') ?>
+				</a>
+			</p>
 		</div>
 		<?php
 	}

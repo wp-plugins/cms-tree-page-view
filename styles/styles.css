@@ -19,6 +19,7 @@
 	/* clear: both; */
 	overflow: visible;
 	margin-top: 1.5em;
+	font-size: 13px;
 }
 
 #wpbody-content .cms_tpv_container {
@@ -99,7 +100,7 @@ li span.cms_tpv_action_add_page {
 	background-color: transparent;
 	color: #999;
 	border: none;
-	font-size: .8em;
+	font-size: .9em;
 	margin-left: .5em;
 }
 
@@ -113,11 +114,11 @@ li span.cms_tpv_action_add_page {
 
 
 .tree-default span.post_type {
-	background-color: #f85b11;
-	-moz-border-radius: 3px;
-	-webkit-border-radius: 3px;
-	border-radius: 3px;
-	padding: 1px 4px 1px 4px;
+	background-color: rgba(248, 98, 16, .75);
+	-moz-border-radius: 2px;
+	-webkit-border-radius: 2px;
+	border-radius: 2px;
+	padding: 1px 4px 2px 4px;
 	color: white;
 	border: none;
 	font-size: .8em;
@@ -127,16 +128,14 @@ li span.cms_tpv_action_add_page {
 .tree-default span.post_type_draft {
 	
 }
-.tree-default span.post_type_password {
-	background-color: #25b61a;
-}
+.tree-default span.post_type_password,
 .tree-default span.post_type_private {
-	background-color: #25b61a;
+	background-color: rgba(37, 182, 26, .75);
 }
 .tree-default span.post_type_pending,
 .tree-default span.post_type_future
 {
-	background-color: #0069e0;
+	background-color: rgba(0, 105, 224, .75);
 }
 
 
@@ -211,24 +210,42 @@ li span.cms_tpv_action_add_page {
 }
 
 .cms_tpv_annoying_little_box {
-	padding: 1em;
-	background-color: #FFFBCC;
-	border: 1px solid #E6DB55;
+	padding: 1.5em;
+	background-color: #FAFAFA;
+	border: 1px solid #ddd;
 	margin: 1em 0 1em 0;
-	-moz-border-radius: 6px;
-	-webkit-border-radius: 6px;
-	border-radius: 6px;
-}
-.cms_tpv_annoying_little_box p {
-	margin: 0 0 .5em 0;
-}
-p.cms_tpv_annoying_little_box_close {
 	float: right;
-	margin-left: 2em;
-	font-size: .8em;
-	margin-top: -1em;
-	margin-right: -.5em;
+	width: 22em;
 }
+
+	.cms_tpv_annoying_little_box h3:first-of-type {
+		margin-top: 0;
+	}
+
+	.cms_tpv_annoying_little_box_author {
+		font-style: italic;
+	}
+
+	.cms_tpv_annoying_little_box p {
+		margin: 0 0 .5em 0;
+	}
+
+	p.cms_tpv_annoying_little_box_gravatar {
+		float: right;
+		margin: 0 0 1em 1em;
+	}
+
+	.cms_tpv_annoying_little_box ul {
+		list-style-type: disc;
+		margin-left: 20px;
+	}
+
+	p.cms_tpv_annoying_little_box_close {
+		text-align: right;
+		font-size: .8em;
+		margin-top: 1.5em;
+		margin-bottom: 0;
+	}
 
 .cms_tpv_page_actions {
 	width: auto;
