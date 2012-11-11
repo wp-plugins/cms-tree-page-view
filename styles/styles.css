@@ -250,6 +250,7 @@
 	box-shadow: 0 4px 4px rgba(0, 0, 0, 0.2);
 	border: 1px solid #DFDFDF;
 	opacity: 0;
+	font-family: sans-serif !important;
 }
 
 .cms_tpv_page_actions:before {
@@ -379,6 +380,9 @@ li.cms_tpv_user_can_edit_page_no a {
 
 h4.cms_tpv_page_actions_headline {
 	margin: 0 0 0 0;
+	font-weight: bold !important;
+	font-family: sans-serif !important;
+	line-height: 1.1;
 }
 
 

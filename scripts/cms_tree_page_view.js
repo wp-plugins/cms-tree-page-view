@@ -97,7 +97,8 @@ jQuery(function($) {
 			}
 		});
 		
-		$elm.bind("loaded.jstree", cms_tpv_tree_loaded);
+		$elm.bind("loaded.jstree open_node.jstree", cms_tpv_tree_loaded);
+		 //$wrapper.find(".cms_tpv_container").bind("loaded.jstree refresh.jstree open_node.jstree reopen.jstree after_open.jstree load_node.jstree", cms_tpv_tree_loaded);
 		$elm.jstree(treeOptionsTmp);
 
 	});
