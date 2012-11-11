@@ -4,7 +4,7 @@ Donate link: http://eskapism.se/sida/donate/
 Tags: page, pages, posts, custom posts, tree, cms, dashboard, overview, drag-and-drop, rearrange, management, manage, admin
 Requires at least: 3.0
 Tested up to: 3.5
-Stable tag: 0.8.14
+Stable tag: 0.9
 
 Adds a tree of all your pages or custom posts. Use drag & drop to reorder your pages, and edit, view, add, and search your pages.
 
@@ -97,7 +97,6 @@ Now the tree with the pages will be visible both on the dashboard and in the men
 - Changed javascript to to use on() istead on live()
 - Removed hoverIntent since that is included in WordPress by default
 - Started using hoverIndent to make the popup with page actions show after a short while for each page. This also means that you can move outside the actions-pop-up for a short while without the pop up being closed - a thing that annoyed me very much. This makes the whole popup actions div thingie feels less in-your-face all the time. Hope you like it as much as I do!
-- 
 
 = 0.8.14 =
 - Added Estonian translation

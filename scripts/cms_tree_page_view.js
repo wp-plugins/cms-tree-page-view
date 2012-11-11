@@ -659,7 +659,7 @@ function cms_tvp_set_view(view, elm) {
 	var treeOptionsTmp = jQuery.extend(true, {}, treeOptions);
 	treeOptionsTmp.json_data.ajax.url = ajaxurl + CMS_TPV_AJAXURL + view + "&post_type=" + cms_tpv_get_post_type(elm) + "&lang=" + cms_tpv_get_wpml_selected_lang(elm);
 
-	$wrapper.find(".cms_tpv_container").bind("loaded.jstree", cms_tpv_tree_loaded);
+	$wrapper.find(".cms_tpv_container").bind("loaded.jstree open_node.jstree", cms_tpv_tree_loaded);
 	$wrapper.find(".cms_tpv_container").jstree(treeOptionsTmp);
 
 	/*
