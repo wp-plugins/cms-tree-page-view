@@ -52,6 +52,8 @@ This plugin is available in the following languages:
 * Polish
 * Greek
 * Danish
+* Lithuanian
+* Estonian
 
 #### Making the tree available for your vistors
 If you're looking for a version of this page tree that the vistors of your site can use, then check out
@@ -362,8 +364,4 @@ http://wordpress.org/support/topic/plugin-cms-tree-page-view-broken-for-language
 = 0.1a =
 - First public version.
 
-
-== Still on WordPress 2? ==
-If you are using WordPress 2.x you can try this old version instead:
-http://downloads.wordpress.org/plugin/cms-tree-page-view.0.4.9.zip
 

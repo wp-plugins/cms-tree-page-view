@@ -3,6 +3,7 @@
 var cms_tpv_tree, treeOptions, div_actions, cms_tpv_current_li_id = null;
 jQuery(function($) {
 	
+	// Globals, don't "var" them! :)
 	cms_tpv_tree = $("div.cms_tpv_container");
 	div_actions = $("div.cms_tpv_page_actions");
 
@@ -96,42 +97,7 @@ jQuery(function($) {
 			}
 		});
 		
-		/**
-		 * When tree is loaded: start hoverindenting stuff
-		 */
-		function cms_tpv_tree_loaded(event, data) {
-			//console.log(event);
-			//console.log(data);
-			var $target = $(event.target);
-			var $lis = $target.find("li a");
-			var $hoverIntentWrap = $target.find("div.cmstpv-hoverIntent-wrap");
-
-			$hoverIntentWrap.hoverIntent({    
-				over: cms_tpv_mouseover,
-				out: cms_tpv_mouseout,
-				timeout: 500
-			});
-
-			function cms_tpv_mouseover() {
-				var $this = $(this);
-				var $li = $this.closest("li");
-				//$this.css("background-color", "yellow");
-				console.log("mouseover");
-				cms_tpv_mouseover_li($li.get(0));
-			}
-
-			function cms_tpv_mouseout() {
-				var $this = $(this);
-				var $li = $this.closest("li");
-				//$this.css("background-color", "transparent");
-				console.log("mouseout");
-				cms_tpv_mouseout_li($li.get(0));
-			}
-
-		}
-
 		$elm.bind("loaded.jstree", cms_tpv_tree_loaded);
-		
 		$elm.jstree(treeOptionsTmp);
 
 	});
@@ -139,21 +105,56 @@ jQuery(function($) {
 }); // end ondomready
 
 
+/**
+ * When tree is loaded: start hoverindenting stuff
+ * @todo: this is fireded several times, why not only once
+ */
+function cms_tpv_tree_loaded(event, data) {
+
+	// console.log("loaded");
+
+	var $target = jQuery(event.target);
+	var $lis = $target.find("li a");
+	var $hoverIntentWrap = $target.find("div.cmstpv-hoverIntent-wrap");
+
+	// Bind hoverIntent
+	$hoverIntentWrap.hoverIntent({    
+		over: cms_tpv_mouseover,
+		out: cms_tpv_mouseout,
+		timeout: 500, // default 0, 500 is good
+		sensitivity: 4 // default 7
+	});
+
+	function cms_tpv_mouseover(e) {
+		var $this = jQuery(this);
+		var $li = $this.closest("li");
+		cms_tpv_mouseover_li(e, $li.get(0));
+	}
+
+	function cms_tpv_mouseout(e) {
+		var $this = jQuery(this);
+		var $li = $this.closest("li");
+		cms_tpv_mouseout_li(e, $li.get(0));
+	}
+
+}
+
+
 // get post type
 // elm must be within .cms_tpv_wrapper to work
 function cms_tpv_get_post_type(elm) {
-	return jQuery(elm).closest(".cms_tpv_wrapper").find("[name=cms_tpv_meta_post_type]").val();
+	return jQuery(elm).closest("div.cms_tpv_wrapper").find("[name=cms_tpv_meta_post_type]").val();
 }
 // get selected lang
 function cms_tpv_get_wpml_selected_lang(elm) {
-	return jQuery(elm).closest(".cms_tpv_wrapper").find("[name=cms_tpv_meta_wpml_language]").val();
+	return jQuery(elm).closest("div.cms_tpv_wrapper").find("[name=cms_tpv_meta_wpml_language]").val();
 }
 
 function cms_tpv_get_page_actions_div(elm) {
-	return jQuery(elm).closest(".cms_tpv_wrapper").find(".cms_tpv_page_actions");
+	return jQuery(elm).closest("div.cms_tpv_wrapper").find("div.cms_tpv_page_actions");
 }
 function cms_tpv_get_wrapper(elm) {
-	var $wrapper = jQuery(elm).closest(".cms_tpv_wrapper");
+	var $wrapper = jQuery(elm).closest("div.cms_tpv_wrapper");
 	return $wrapper;
 }
 
@@ -260,12 +261,12 @@ jQuery(".jstree li").live("mouseout", function() {
 
 
 // fired when mouse is over li
-function cms_tpv_mouseover_li(li) {
+function cms_tpv_mouseover_li(e, li) {
 
-	//console.log("show actions div");
-	$li = jQuery(li);
+	var $li = jQuery(li);
 
 	var div_actions_for_post_type = cms_tpv_get_page_actions_div(li);
+	var $cms_tpv_container = $li.closest("div.cms_tpv_container");
 
 	if (cms_tpv_is_dragging() == false) {
 		
@@ -276,6 +277,13 @@ function cms_tpv_mouseover_li(li) {
 			// do nada
 		} else {
 
+			// Remove classes on all elements
+			$cms_tpv_container.find("li.has-visible-actions").removeClass("has-visible-actions");
+			$cms_tpv_container.find("a.hover").removeClass("hover");
+
+			// Add classes to only our new
+			$li.addClass("has-visible-actions");
+			$cms_tpv_container.addClass("has-visible-actions");
 			$li.find("a:first").addClass("hover");
 			
 			// setup link for view page
@@ -294,6 +302,9 @@ function cms_tpv_mouseover_li(li) {
 			div_actions_for_post_type.find(".cms_tpv_page_actions_page_id").text($li.data("post_id"));		
 			
 			div_actions_for_post_type.find(".cms_tpv_page_actions_columns").html( unescape($li.data("columns")) );
+
+			// add post title as headline
+			div_actions_for_post_type.find(".cms_tpv_page_actions_headline").html( $li.data("post_title") );
 			
 			// position and show action div
 			// put it inside cmstpv-hoverIntent-wrap so hoverIndent is cool with it
@@ -305,10 +316,16 @@ function cms_tpv_mouseover_li(li) {
 			
 			$overIntentWrap.append(div_actions_for_post_type);
 			
-			left_pos = width+28;
-			top_pos = -8;
-			div_actions_for_post_type.css("left", left_pos);
-			div_actions_for_post_type.css("top", top_pos);
+			var new_offset = div_actions_for_post_type.offset();
+			var new_offset_left = e.pageX + 35;
+			// check that new left offset is not to close to the left of the a
+			// i.e. the mouse be x px more than the a for the experience to be optimal IMHO
+			var diff = e.pageX - $a.offset().left;
+			if (diff < 25) new_offset_left = new_offset_left + 25;
+
+			new_offset.left = new_offset_left;
+			new_offset.top = $a.offset().top - 30;
+			div_actions_for_post_type.offset(new_offset);
 			
 			// check if user is allowed to edit page
 			var $cms_tpv_action_add_and_edit_page = div_actions_for_post_type.find(".cms_tpv_action_add_and_edit_page");
@@ -328,13 +345,67 @@ function cms_tpv_mouseover_li(li) {
 
 }
 
+// When mouse leaves the whole cms tree page view-area/div
+jQuery(document).on("mouseleave", "div.cms_tpv_container", function(e) {
+	// hide actions div after moving mouse out of a page and not moving it on again for...a while
+	
+	//var div_actions_for_post_type = cms_tpv_get_page_actions_div(li);
+	//var $cms_tpv_container = $li.closest("div.cms_tpv_container");
+	// console.log("mouse outside container");
+	var $container = jQuery(this);
+	jQuery.data(this, "cmstpv_do_hide_after_timeout", true);
+	var t = this;
+
+	setTimeout(function() {
+		//(function() {
+			
+			// check if container has data value that still tells us to hide
+			// this value is reseted when we enter the div again
+			//$cms_tpv_container
+			//console.log("timeout passed; hide?");
+			//console.log( jQuery.data(t, "cmstpv_do_hide_after_timeout") );
+			if (jQuery.data(t, "cmstpv_do_hide_after_timeout")) {
+				$container.find("li.has-visible-actions").removeClass("has-visible-actions");
+				$container.find("a.hover").removeClass("hover");
+				$container.find("div.cms_tpv_page_actions").removeClass("cms_tpv_page_actions_visible");
+			}
+
+		//})();
+	}, 1000);
+
+});
+
+// When mouse enter the whole cms tree page view-area/div
+jQuery(document).on("mouseenter", "div.cms_tpv_container", function(e) {
+
+	// console.log("mouse inside container, reset hide data");
+	var $container = jQuery(this);
+	jQuery.data(this, "cmstpv_do_hide_after_timeout", false);
+
+});
+
+
 // fired when mouse leaves li
-function cms_tpv_mouseout_li(li) {
+function cms_tpv_mouseout_li(e, li) {
+
+	var $li = jQuery(li);
+	var $cms_tpv_container = $li.closest("div.cms_tpv_container");
+
 	/*
-	when / how to hide?
+	var div_actions_for_post_type = cms_tpv_get_page_actions_div(li);
+	var $cms_tpv_container = $li.closest("div.cms_tpv_container");
+	var is_visible = div_actions_for_post_type.is(":visible");
 	*/
-	$li = jQuery(li);
+
+	// Remove classes if we are not viewing any
+	// This function can get called also when a new li has been hoverIndent:ed
+	/*
 	$li.find("a:first").removeClass("hover");
+	$li.removeClass("has-visible-actions");
+	if (!is_visible) {
+		$cms_tpv_container.removeClass("has-visible-actions");
+	}
+	*/
 	//div_actions.hide();
 }
 
@@ -576,8 +647,24 @@ function cms_tvp_set_view(view, elm) {
 	} else {
 		
 	}
+
+	// Hide actions if open
+	var $cms_tpv_container = $wrapper.find("div.cms_tpv_container");
+	$cms_tpv_container.find("li.has-visible-actions").removeClass("has-visible-actions");
+	$cms_tpv_container.find("a.hover").removeClass("hover");
+	$cms_tpv_container.find("div.cms_tpv_page_actions").removeClass("cms_tpv_page_actions_visible");
+	jQuery("div.cms_tpv_page_actions_visible").removeClass("cms_tpv_page_actions_visible");
 	
 	var treeOptionsTmp = jQuery.extend(true, {}, treeOptions);
 	treeOptionsTmp.json_data.ajax.url = ajaxurl + CMS_TPV_AJAXURL + view + "&post_type=" + cms_tpv_get_post_type(elm) + "&lang=" + cms_tpv_get_wpml_selected_lang(elm);
+
+	$wrapper.find(".cms_tpv_container").bind("loaded.jstree", cms_tpv_tree_loaded);
 	$wrapper.find(".cms_tpv_container").jstree(treeOptionsTmp);
+
+	/*
+	__calback loaded jquery.jstree.js:238
+	__calback reopen jquery.jstree.js:238
+	__calback reload_nodes
+	*/
+
 }

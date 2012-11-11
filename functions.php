@@ -417,9 +417,14 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 
 			<div style="clear: both;"></div>
 
+			<!-- template forpopup with actions -->
 			<div class="cms_tpv_page_actions">
-				<p>
-					<a href="#" title='<?php _e("Edit page", "cms-tree-page-view")?>' class='cms_tpv_action_edit'><?php _e("Edit", "cms-tree-page-view")?></a> | 
+
+				<!-- cms_tpv_page_actions_page_id -->
+				<h4 class="cms_tpv_page_actions_headline"></h4>
+
+				<p class="cms_tpv_action_edit_and_view">
+					<a href="#" title='<?php _e("Edit page", "cms-tree-page-view")?>' class='cms_tpv_action_edit'><?php _e("Edit", "cms-tree-page-view")?></a>
 					<a href="#" title='<?php _e("View page", "cms-tree-page-view")?>' class='cms_tpv_action_view'><?php _e("View", "cms-tree-page-view")?></a>
 				</p>
 				<p class="cms_tpv_action_add_and_edit_page">
@@ -428,7 +433,7 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 					<?php
 					// if post type is hierarchical we can add pages inside
 					if (cms_tpv_is_post_type_hierarchical($post_type_object)) {
-						?> | <a href="#" title='<?php _e("Add new page inside", "cms-tree-page-view")?>' class='cms_tpv_action_add_page_inside'><?php _e("Inside", "cms-tree-page-view")?></a><?php
+						?><a href="#" title='<?php _e("Add new page inside", "cms-tree-page-view")?>' class='cms_tpv_action_add_page_inside'><?php _e("Inside", "cms-tree-page-view")?></a><?php
 					}
 					// if post status = draft then we can not add pages inside because wordpress currently can not keep its parent if we edit the page
 					?>
@@ -754,7 +759,8 @@ function cms_tpv_print_childs($pageID, $view = "all", $arrOpenChilds = null, $po
 					"modified_time": "<?php echo $post_modified_time ?>",
 					"modified_author": "<?php echo $post_author ?>",
 					"columns": <?php echo $str_columns ?>,
-					"user_can_edit_page": "<?php echo (int) $user_can_edit_page ?>"
+					"user_can_edit_page": "<?php echo (int) $user_can_edit_page ?>",
+					"post_title": "<?php echo $title ?>"
 				}
 				<?php
 				// if id is in $arrOpenChilds then also output children on this one
