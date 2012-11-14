@@ -267,6 +267,11 @@
 	overflow: hidden;
 }
 
+.cms_tpv_page_actions_visible_from_bottom:before {
+	top: auto;
+	bottom: 10px;
+}
+
 .cms_tpv_page_actions.cms_tpv_page_actions_visible {
 	/*display: block;*/
 	visibility: visible;
@@ -283,9 +288,13 @@ div.cms_tpv_container.has-visible-actions li.has-visible-actions {
 	opacity: 1;
 }
 */
-li.has-visible-actions > div.cmstpv-hoverIntent-wrap:first-of-type > a:first-of-type {
+li.has-visible-actions > a:first-of-type {
 	/*font-weight: bold;*/
-	background-color: lightyellow;
+	background-color: #d8f5fa;
+}
+
+.jstree a > ins {
+	
 }
 
 .cms_tpv_page_actions p {

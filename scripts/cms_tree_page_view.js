@@ -8,7 +8,7 @@ jQuery(function($) {
 	div_actions = $("div.cms_tpv_page_actions");
 
 	// try to override css
-	var height = "20", height2 = "18", ins_height = "18";
+	var height = "20", height2 = "18", ins_height = "20";
 	css_string = '' + 
 		'.jstree ul, .jstree li { display:block; margin:0 0 0 0; padding:0 0 0 0; list-style-type:none; } ' + 
 		'.jstree li { display:block; min-height:'+height+'px; line-height:'+height+'px; white-space:nowrap; margin-left:18px; min-width:18px; } ' + 
@@ -79,7 +79,7 @@ jQuery(function($) {
 		treeOptionsTmp.json_data.data = cms_tpv_jsondata[post_type]; // get from js
 		
 		var isHierarchical = $(elm).closest(".cms_tpv_wrapper").find("[name=cms_tpv_meta_post_type_hierarchical]").val();
-		if (isHierarchical == 0) {
+		if (isHierarchical === "0") {
 			// no move to children if not hierarchical
 			treeOptionsTmp.types = {
 				"types": {
@@ -97,8 +97,9 @@ jQuery(function($) {
 			}
 		});
 		
-		$elm.bind("loaded.jstree open_node.jstree", cms_tpv_tree_loaded);
-		 //$wrapper.find(".cms_tpv_container").bind("loaded.jstree refresh.jstree open_node.jstree reopen.jstree after_open.jstree load_node.jstree", cms_tpv_tree_loaded);
+		// whole tre loaded
+		$elm.bind("loaded.jstree", cms_tpv_tree_loaded);
+		
 		$elm.jstree(treeOptionsTmp);
 
 	});
@@ -106,37 +107,56 @@ jQuery(function($) {
 }); // end ondomready
 
 
+function cms_tpv_mouseover(e) {
+
+	var $this = jQuery(this);
+	var $li = $this.closest("li");
+	cms_tpv_mouseover_li(e, $li.get(0));
+	return true;
+
+}
+
+
 /**
  * When tree is loaded: start hoverindenting stuff
- * @todo: this is fireded several times, why not only once
+ * @todo: this is fireded several times? why not only once?
  */
 function cms_tpv_tree_loaded(event, data) {
 
-	// console.log("loaded");
+	var $container = jQuery(event.target);
 
-	var $target = jQuery(event.target);
-	var $lis = $target.find("li a");
-	var $hoverIntentWrap = $target.find("div.cmstpv-hoverIntent-wrap");
+	// when mouse enters a/link
+	// start timer and if no other a/link has been moused over since it started it's ok to show this one
+	jQuery($container).on("mouseenter", "a", function(e) {
+		var global_timer = $container.data("cmstpv_global_link_timer");
 
-	// Bind hoverIntent
-	$hoverIntentWrap.hoverIntent({    
-		over: cms_tpv_mouseover,
-		out: cms_tpv_mouseout,
-		timeout: 500, // default 0, 500 is good
-		sensitivity: 4 // default 7
+		if (global_timer) {
+			// global timer exists, so overwrite it with our new one
+			// stop that timer before setting ours
+			clearTimeout(global_timer);
+		} else {
+			// no timer exists, overwrite with ours
+		}
+		// create new timer, no matter if one exists already
+		var timeoutID = setTimeout(function(e) {
+			cms_tpv_mouseover_li(e);
+		}, 500, e);
+
+		$container.data("cmstpv_global_link_timer", timeoutID);
+
 	});
 
-	function cms_tpv_mouseover(e) {
-		var $this = jQuery(this);
-		var $li = $this.closest("li");
-		cms_tpv_mouseover_li(e, $li.get(0));
-	}
-
-	function cms_tpv_mouseout(e) {
-		var $this = jQuery(this);
-		var $li = $this.closest("li");
-		cms_tpv_mouseout_li(e, $li.get(0));
-	}
+	/**
+	 * When mouse down then hide the action div
+	 */
+	jQuery($container).on("mousedown", "a", function(e) {
+		var $target = jQuery(e.target);
+		var $container = $target.closest("div.cms_tpv_container");
+		var $wrapper = $container.closest("div.cms_tpv_wrapper");
+		$container.find("li.has-visible-actions").removeClass("has-visible-actions");
+		$container.find("a.hover").removeClass("hover");
+		$wrapper.find("div.cms_tpv_page_actions").removeClass("cms_tpv_page_actions_visible");
+	});
 
 }
 
@@ -245,31 +265,17 @@ function cms_tpv_is_dragging() {
 	return eDrag.is(":visible");
 }
 
-/*
-jQuery(".jstree li").live("mouseover", function(e) {
-	var $li = jQuery(this);
-	var li_id = $li.attr("id");
-	cms_tpv_mouseover_li(this);
-});
-// ..and hide them again
-jQuery(".jstree li").live("mouseout", function() {
-	//cms_tpv_current_li_id = null;
-	//console.log("out");
-	cms_tpv_mouseout_li(this);
-});
-*/
-
-
-
 // fired when mouse is over li
-function cms_tpv_mouseover_li(e, li) {
+// actually when over a, old name :/
+function cms_tpv_mouseover_li(e) {
 
-	var $li = jQuery(li);
+	var $target = jQuery(e.target);
+	var $li = $target.closest("li");
 
-	var div_actions_for_post_type = cms_tpv_get_page_actions_div(li);
+	var div_actions_for_post_type = cms_tpv_get_page_actions_div($li);
 	var $cms_tpv_container = $li.closest("div.cms_tpv_container");
 
-	if (cms_tpv_is_dragging() == false) {
+	if (cms_tpv_is_dragging() === false) {
 		
 		var is_visible = div_actions_for_post_type.is(":visible");
 		is_visible = false;
@@ -300,37 +306,44 @@ function cms_tpv_mouseover_li(e, li) {
 			// ..and some extras
 			div_actions_for_post_type.find(".cms_tpv_page_actions_modified_time").text($li.data("modified_time"));
 			div_actions_for_post_type.find(".cms_tpv_page_actions_modified_by").text($li.data("modified_author"));
-			div_actions_for_post_type.find(".cms_tpv_page_actions_page_id").text($li.data("post_id"));		
-			
+			div_actions_for_post_type.find(".cms_tpv_page_actions_page_id").text($li.data("post_id"));
 			div_actions_for_post_type.find(".cms_tpv_page_actions_columns").html( unescape($li.data("columns")) );
 
 			// add post title as headline
 			div_actions_for_post_type.find(".cms_tpv_page_actions_headline").html( $li.data("post_title") );
 			
 			// position and show action div
-			// put it inside cmstpv-hoverIntent-wrap so hoverIndent is cool with it
-			var $overIntentWrap = $li.find("div.cmstpv-hoverIntent-wrap:first");
-			//console.log( $overIntentWrap.length );
+
+			//console.log( jQuery(window).position() );
+			//console.log( jQuery(window).offset() );
+
 			var $a = $li.find("a");
 			var width = $a.outerWidth(true);
-			//$li.append(div_actions_for_post_type);
-			
-			$overIntentWrap.append(div_actions_for_post_type);
-			
 			var new_offset = div_actions_for_post_type.offset();
 			var new_offset_left = e.pageX + 35;
-			// check that new left offset is not to close to the left of the a
-			// i.e. the mouse be x px more than the a for the experience to be optimal IMHO
-			var diff = e.pageX - $a.offset().left;
-			if (diff < 25) new_offset_left = new_offset_left + 25;
-
+		
+			new_offset_left = $a.offset().left + $a.width() + 20;
 			new_offset.left = new_offset_left;
 			new_offset.top = $a.offset().top - 30;
 			div_actions_for_post_type.offset(new_offset);
+
+			// check if action div bottom is visible in browser window, if not move it up until it is
+			var pos_diff = (div_actions_for_post_type.offset().top + div_actions_for_post_type.height()) - (jQuery(window).height() + jQuery(window).scrollTop());
+			if (pos_diff > 0)  {
+				
+				// set action div to begin at bottom of link instead
+				new_offset.top = $a.offset().top - div_actions_for_post_type.height() + 15; // <- ska bli botten på vår div
+				div_actions_for_post_type.offset( new_offset );
+				div_actions_for_post_type.addClass("cms_tpv_page_actions_visible_from_bottom");
+				
+			} else {
+				div_actions_for_post_type.removeClass("cms_tpv_page_actions_visible_from_bottom");
+			}
+
 			
 			// check if user is allowed to edit page
 			var $cms_tpv_action_add_and_edit_page = div_actions_for_post_type.find(".cms_tpv_action_add_and_edit_page");
-			if ($li.data("user_can_edit_page") == 0) {
+			if ($li.data("user_can_edit_page") === "0") {
 				// nooope
 				$edit.hide();
 				$cms_tpv_action_add_and_edit_page.hide();
@@ -346,75 +359,68 @@ function cms_tpv_mouseover_li(e, li) {
 
 }
 
-// When mouse leaves the whole cms tree page view-area/div
+/**
+ * When mouse leaves the whole cms tree page view-area/div
+ * hide actions div after moving mouse out of a page and not moving it on again for...a while
+ */
 jQuery(document).on("mouseleave", "div.cms_tpv_container", function(e) {
-	// hide actions div after moving mouse out of a page and not moving it on again for...a while
 	
-	//var div_actions_for_post_type = cms_tpv_get_page_actions_div(li);
-	//var $cms_tpv_container = $li.closest("div.cms_tpv_container");
-	// console.log("mouse outside container");
-	var $container = jQuery(this);
-	jQuery.data(this, "cmstpv_do_hide_after_timeout", true);
+	var $container = jQuery(e.target).closest("div.cms_tpv_container");
+	var $wrapper = $container.closest("div.cms_tpv_wrapper");
 	var t = this;
+	
+	// reset global timer
+	var global_timer = $container.data("cmstpv_global_link_timer");
+	if (global_timer) {
+		clearTimeout(global_timer);
+	}
 
-	setTimeout(function() {
-		//(function() {
-			
-			// check if container has data value that still tells us to hide
-			// this value is reseted when we enter the div again
-			//$cms_tpv_container
-			//console.log("timeout passed; hide?");
-			//console.log( jQuery.data(t, "cmstpv_do_hide_after_timeout") );
-			if (jQuery.data(t, "cmstpv_do_hide_after_timeout")) {
-				$container.find("li.has-visible-actions").removeClass("has-visible-actions");
-				$container.find("a.hover").removeClass("hover");
-				$container.find("div.cms_tpv_page_actions").removeClass("cms_tpv_page_actions_visible");
-			}
+	// hide popup after a short while
+	var hideTimer = setTimeout(function() {
+		
+		// But don't hide if we are inside the popup
+		var $toElement = jQuery(e.toElement);
+		if ($toElement.hasClass("cms_tpv_page_actions")) {
+			// we are over the actions div, so don't hide
+		} else {
+			// somewhere else, do hide
+			$container.find("li.has-visible-actions").removeClass("has-visible-actions");
+			$container.find("a.hover").removeClass("hover");
+			$wrapper.find("div.cms_tpv_page_actions").removeClass("cms_tpv_page_actions_visible");
+		}
 
-		//})();
-	}, 1000);
+	}, 500);
+
+	$container.data("cmstpv_global_hide_timer", hideTimer);
 
 });
+
+/// When mouse enters actions div then cancel possibly global hide timer
+/*
+jQuery(document).on("mouseenter", "div.cms_tpv_page_actions", function(e) {
+	
+	var $this = jQuery(this);
+	var $wrapper = $this.closest("div.cms_tpv_wrapper");
+	var $container = $wrapper.find("div.cms_tpv_container");
+	var hideTimer = $container.data("cmstpv_global_hide_timer");
+	console.log(hideTimer, "hidetimer");
+	if (hideTimer) {
+		console.log("clearedIt!");
+		clearTimeout(hideTimer);
+	}
+
+});
+*/
+
 
 // When mouse enter the whole cms tree page view-area/div
 jQuery(document).on("mouseenter", "div.cms_tpv_container", function(e) {
 
-	// console.log("mouse inside container, reset hide data");
 	var $container = jQuery(this);
 	jQuery.data(this, "cmstpv_do_hide_after_timeout", false);
 
 });
 
-
-// fired when mouse leaves li
-function cms_tpv_mouseout_li(e, li) {
-
-	var $li = jQuery(li);
-	var $cms_tpv_container = $li.closest("div.cms_tpv_container");
-
-	/*
-	var div_actions_for_post_type = cms_tpv_get_page_actions_div(li);
-	var $cms_tpv_container = $li.closest("div.cms_tpv_container");
-	var is_visible = div_actions_for_post_type.is(":visible");
-	*/
-
-	// Remove classes if we are not viewing any
-	// This function can get called also when a new li has been hoverIndent:ed
-	/*
-	$li.find("a:first").removeClass("hover");
-	$li.removeClass("has-visible-actions");
-	if (!is_visible) {
-		$cms_tpv_container.removeClass("has-visible-actions");
-	}
-	*/
-	//div_actions.hide();
-}
-
-
-// hide action links on drag
-jQuery.jstree.drag_start = function() {
-	jQuery(".cms_tpv_action_view, .cms_tpv_action_edit, .cms_tpv_action_add_page, .cms_tpv_action_add_page_after, .cms_tpv_action_add_page_inside").hide();
-}
 
 /**
  * add childcount and other things to each li
@@ -516,15 +522,8 @@ function cms_tpv_bind_clean_node() {
 				}
 
 				// To make hoverindent work we must wrap something around the a bla bla bla
-
-				//li.find()
-				var div_wrap = jQuery("<div class='cmstpv-hoverIntent-wrap' />");
-				div_wrap.css({
-					"display": "inline-block",
-					"xwidth": "100%"
-				});
-				aFirst.wrap(div_wrap);
-
+				//var div_wrap = jQuery("<div class='cmstpv-hoverIntent-wrap' />");
+				//aFirst.wrap(div_wrap);
 
 			});
 		}
@@ -542,7 +541,7 @@ jQuery(document).on("submit", "form.cms_tree_view_search_form", function(e) {
 	if (s) {
 		$wrapper.find(".cms_tree_view_search_form_no_hits").fadeOut("fast");
 		$wrapper.find(".cms_tree_view_search_form_working").fadeIn("fast");
-		$wrapper.find(".cms_tree_view_search_form_reset")
+		$wrapper.find(".cms_tree_view_search_form_reset");
 		$wrapper.find(".cms_tpv_container").jstree("search", s);
 		$wrapper.find(".cms_tree_view_search_form_reset").fadeIn("fast");
 	} else {
@@ -659,7 +658,7 @@ function cms_tvp_set_view(view, elm) {
 	var treeOptionsTmp = jQuery.extend(true, {}, treeOptions);
 	treeOptionsTmp.json_data.ajax.url = ajaxurl + CMS_TPV_AJAXURL + view + "&post_type=" + cms_tpv_get_post_type(elm) + "&lang=" + cms_tpv_get_wpml_selected_lang(elm);
 
-	$wrapper.find(".cms_tpv_container").bind("loaded.jstree", cms_tpv_tree_loaded);
+	$wrapper.find(".cms_tpv_container").bind("loaded.jstree open_node.jstree", cms_tpv_tree_loaded);
 	$wrapper.find(".cms_tpv_container").jstree(treeOptionsTmp);
 
 	/*
