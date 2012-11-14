@@ -235,6 +235,7 @@
 						rslt = func.apply(
 							$.extend({}, this, { 
 								__callback : function (data) { 
+									//console.log(i);
 									this.get_container().triggerHandler( i + '.jstree', { "inst" : this, "args" : args, "rslt" : data, "rlbk" : rlbk });
 								},
 								__rollback : function () { 

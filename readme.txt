@@ -4,7 +4,7 @@ Donate link: http://eskapism.se/sida/donate/
 Tags: page, pages, posts, custom posts, tree, cms, dashboard, overview, drag-and-drop, rearrange, management, manage, admin
 Requires at least: 3.0
 Tested up to: 3.5
-Stable tag: 0.9
+Stable tag: 0.10
 
 Adds a tree of all your pages or custom posts. Use drag & drop to reorder your pages, and edit, view, add, and search your pages.
 
@@ -87,6 +87,11 @@ Now the tree with the pages will be visible both on the dashboard and in the men
 7. Users of WPML can find all their languages in the tree
 
 == Changelog ==
+
+= 0.10 =
+- Fixed position of action div. Now it's always to the right of the page name.
+- Fixed so action div never is below the fold of the browser. Instead it's moved up until it's visible.
+- Fixed problem related to hoverIntent and mouseover and drag and drop. There was just to many wierd things going on so I switched to my own solution instead. Let me know if it works ok for you too now again!
 
 = 0.9 =
 - Only output scripts and styles on pages that the plugin uses. This should speed up other parts of the WordPress admin a little tiny itsy bitsy bit.
