@@ -1,4 +1,52 @@
 
+/*
+
+Some docs so I remember how things work:
+
+Timers:
+
+	cmstpv_global_link_timer
+	set when mouse over link. used to show the actions div.
+
+*/
+
+
+/**
+ * Should have a module for all instead...
+ */
+var cms_tree_page_view = (function () {
+	
+	var my = {},
+		privateVariable = 1;
+	 
+	function privateMethod() {
+		// ...
+	}
+	 
+	my.moduleProperty = 1;
+	my.moduleMethod = function () {
+		// ...
+	};
+
+	my.init = function() {
+		my.log("init cms tree page view");
+	};
+
+	/**
+	 * Log, but only if console.log is available
+	 */
+	my.log = function(what) {
+		if (typeof(window.console) === "object" && typeof(window.console.log) === "function" ) {
+			console.log(what);
+		}
+	};
+	 
+	return my;
+}());
+
+cms_tree_page_view.init();
+
+
 // @todo: add prefix to treeOptions, div_actions
 var cms_tpv_tree, treeOptions, div_actions, cms_tpv_current_li_id = null;
 jQuery(function($) {
@@ -9,20 +57,22 @@ jQuery(function($) {
 
 	// try to override css
 	var height = "20", height2 = "18", ins_height = "20";
-	css_string = '' + 
-		'.jstree ul, .jstree li { display:block; margin:0 0 0 0; padding:0 0 0 0; list-style-type:none; } ' + 
-		'.jstree li { display:block; min-height:'+height+'px; line-height:'+height+'px; white-space:nowrap; margin-left:18px; min-width:18px; } ' + 
-		'.jstree-rtl li { margin-left:0; margin-right:18px; } ' + 
-		'.jstree > ul > li { margin-left:0px; } ' + 
-		'.jstree-rtl > ul > li { margin-right:0px; } ' + 
-		'.jstree ins { display:inline-block; text-decoration:none; width:18px; height:'+height+'px; margin:0 0 0 0; padding:0; } ' + 
-		'.jstree a { display:inline-block; line-height:'+height2+'px; height:'+height2+'px; color:black; white-space:nowrap; text-decoration:none; padding:1px 2px; margin:0; } ' + 
-		'.jstree a:focus { outline: none; } ' + 
-		'.jstree a > ins { height:'+ins_height+'px; width:16px; } ' + 
-		'.jstree a > .jstree-icon { margin-right:3px; } ' + 
-		'.jstree-rtl a > .jstree-icon { margin-left:3px; margin-right:0; } ' + 
-		'li.jstree-open > ul { display:block; } ' + 
-		'li.jstree-closed > ul { display:none; } ';
+	css_string = '' +
+		'.jstree ul, .jstree li { display:block; margin:0 0 0 0; padding:0 0 0 0; list-style-type:none; } ' +
+		'.jstree li { display:block; min-height:'+height+'px; line-height:'+height+'px; white-space:nowrap; margin-left:18px; min-width:18px; } ' +
+		'.jstree-rtl li { margin-left:0; margin-right:18px; } ' +
+		'.jstree > ul > li { margin-left:0px; } ' +
+		'.jstree-rtl > ul > li { margin-right:0px; } ' +
+		'.jstree ins { display:inline-block; text-decoration:none; width:18px; height:'+height+'px; margin:0 0 0 0; padding:0; } ' +
+		'.jstree a { display:inline-block; line-height:'+height2+'px; height:'+height2+'px; color:black; white-space:nowrap; text-decoration:none; padding:1px 2px; margin:0; } ' +
+		'.jstree a:focus { outline: none; } ' +
+		'.jstree a > ins { height:'+ins_height+'px; width:16px; } ' +
+		'.jstree a > .jstree-icon { margin-right:3px; } ' +
+		'.jstree-rtl a > .jstree-icon { margin-left:3px; margin-right:0; } ' +
+		'li.jstree-open > ul { display:block; } ' +
+		'li.jstree-closed > ul { display:none; } ' +
+		'#vakata-dragged { background-color: white; };' +
+		'';
 	$.vakata.css.add_sheet({
 		str : css_string,
 		title : "jstree_cms_tpv"
@@ -119,7 +169,6 @@ function cms_tpv_mouseover(e) {
 
 /**
  * When tree is loaded: start hoverindenting stuff
- * @todo: this is fireded several times? why not only once?
  */
 function cms_tpv_tree_loaded(event, data) {
 
@@ -128,16 +177,22 @@ function cms_tpv_tree_loaded(event, data) {
 	// when mouse enters a/link
 	// start timer and if no other a/link has been moused over since it started it's ok to show this one
 	jQuery($container).on("mouseenter", "a", function(e) {
+
+		cms_tree_page_view.log("mouseenter container");
+
 		var global_timer = $container.data("cmstpv_global_link_timer");
 
 		if (global_timer) {
 			// global timer exists, so overwrite it with our new one
 			// stop that timer before setting ours
+			cms_tree_page_view.log("clear global timer");
 			clearTimeout(global_timer);
 		} else {
 			// no timer exists, overwrite with ours
 		}
+
 		// create new timer, no matter if one exists already
+		cms_tree_page_view.log("add timer for mousover on link");
 		var timeoutID = setTimeout(function(e) {
 			cms_tpv_mouseover_li(e);
 		}, 500, e);
@@ -147,15 +202,23 @@ function cms_tpv_tree_loaded(event, data) {
 	});
 
 	/**
-	 * When mouse down then hide the action div
+	 * When mouse down we may want to drag and drop,
+	 * so hide the action div and cancel the timer
 	 */
 	jQuery($container).on("mousedown", "a", function(e) {
+		
+		cms_tree_page_view.log("mousedown a");
+
 		var $target = jQuery(e.target);
 		var $container = $target.closest("div.cms_tpv_container");
 		var $wrapper = $container.closest("div.cms_tpv_wrapper");
+
 		$container.find("li.has-visible-actions").removeClass("has-visible-actions");
 		$container.find("a.hover").removeClass("hover");
 		$wrapper.find("div.cms_tpv_page_actions").removeClass("cms_tpv_page_actions_visible");
+
+
+
 	});
 
 }
@@ -364,6 +427,8 @@ function cms_tpv_mouseover_li(e) {
  * hide actions div after moving mouse out of a page and not moving it on again for...a while
  */
 jQuery(document).on("mouseleave", "div.cms_tpv_container", function(e) {
+
+	cms_tree_page_view.log("mouseleave container");
 	
 	var $container = jQuery(e.target).closest("div.cms_tpv_container");
 	var $wrapper = $container.closest("div.cms_tpv_wrapper");
@@ -372,18 +437,23 @@ jQuery(document).on("mouseleave", "div.cms_tpv_container", function(e) {
 	// reset global timer
 	var global_timer = $container.data("cmstpv_global_link_timer");
 	if (global_timer) {
+		cms_tree_page_view.log("clear global timer");
 		clearTimeout(global_timer);
 	}
 
 	// hide popup after a short while
 	var hideTimer = setTimeout(function() {
 		
+		cms_tree_page_view.log("maybe hide popup because outside container");
+
 		// But don't hide if we are inside the popup
-		var $toElement = jQuery(e.toElement);
-		if ($toElement.hasClass("cms_tpv_page_actions")) {
+		var $relatedTarget = jQuery(e.relatedTarget);
+		if ($relatedTarget.hasClass("cms_tpv_page_actions")) {
 			// we are over the actions div, so don't hide
+			cms_tree_page_view.log("cancel hide beacuse over actions div");
 		} else {
 			// somewhere else, do hide
+			cms_tree_page_view.log("do hide");
 			$container.find("li.has-visible-actions").removeClass("has-visible-actions");
 			$container.find("a.hover").removeClass("hover");
 			$wrapper.find("div.cms_tpv_page_actions").removeClass("cms_tpv_page_actions_visible");
@@ -391,7 +461,7 @@ jQuery(document).on("mouseleave", "div.cms_tpv_container", function(e) {
 
 	}, 500);
 
-	$container.data("cmstpv_global_hide_timer", hideTimer);
+	// $container.data("cmstpv_global_hide_timer", hideTimer);
 
 });
 

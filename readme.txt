@@ -4,7 +4,7 @@ Donate link: http://eskapism.se/sida/donate/
 Tags: page, pages, posts, custom posts, tree, cms, dashboard, overview, drag-and-drop, rearrange, management, manage, admin
 Requires at least: 3.0
 Tested up to: 3.5
-Stable tag: 0.10
+Stable tag: 0.10.1
 
 Adds a tree of all your pages or custom posts. Use drag & drop to reorder your pages, and edit, view, add, and search your pages.
 
@@ -87,6 +87,12 @@ Now the tree with the pages will be visible both on the dashboard and in the men
 7. Users of WPML can find all their languages in the tree
 
 == Changelog ==
+
+= 0.10.1 =
+- Fixed popup closing to fast on Firefox.
+- Enable menu item setting by default for hierarchical post types during first install. It was confusing when it was enabled for pages but not for other post types. Consistency!
+- Added link to settings page to plugin listing.
+- Fixed: WPML-stuff now also works on custom post types
 
 = 0.10 =
 - Fixed position of action div. Now it's always to the right of the page name.
