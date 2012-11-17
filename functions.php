@@ -76,7 +76,7 @@ function cms_admin_enqueue_scripts() {
 		wp_enqueue_script( "jquery-cookie", CMS_TPV_URL . "scripts/jquery.biscuit.js", array("jquery")); // renamed from cookie to fix problems with mod_security
 		wp_enqueue_script( "jquery-jstree", CMS_TPV_URL . "scripts/jquery.jstree.js", false, CMS_TPV_VERSION);
 		wp_enqueue_script( "jquery-alerts", CMS_TPV_URL . "scripts/jquery.alerts.js", false, CMS_TPV_VERSION);
-		wp_enqueue_script( "hoverIntent");
+		// wp_enqueue_script( "hoverIntent");
 		wp_enqueue_script( "cms_tree_page_view", CMS_TPV_URL . "scripts/cms_tree_page_view.js", false, CMS_TPV_VERSION);	
 
 		wp_enqueue_style( "cms_tpv_styles", CMS_TPV_URL . "styles/styles.css", false, CMS_TPV_VERSION );
@@ -126,7 +126,27 @@ function cms_tpv_admin_init() {
 
 	load_plugin_textdomain('cms-tree-page-view', WP_CONTENT_DIR . "/plugins/languages", "/cms-tree-page-view/languages");
 
+	// add row to plugin page
+	add_filter( 'plugin_row_meta', 'cms_tpv_set_plugin_row_meta', 10, 2 );
+
 }
+
+/**
+ * Add settings link to plugin page
+ * Hopefully this helps some people to find the settings page quicker
+ */
+function cms_tpv_set_plugin_row_meta($links, $file) {
+
+	if ($file === "cms-tree-page-view/index.php") {
+		return array_merge(
+			$links,
+			array( sprintf( '<a href="options-general.php?page=%s">%s</a>', "cms-tpv-options", __('Settings') ) )
+		);
+	}
+	return $links;
+
+}
+
 
 // save settings
 function cms_tpv_save_settings() {
@@ -206,7 +226,9 @@ function cms_tpv_options() {
 			<?php
 			$options = cms_tpv_get_options();
 
-			$post_types = get_post_types(array(), "objects");
+			$post_types = get_post_types(array(
+				"show_ui" => TRUE
+			), "objects");
 			$arr_page_options = array();
 			foreach ($post_types as $one_post_type) {
 				$name = $one_post_type->name;
@@ -218,22 +240,20 @@ function cms_tpv_options() {
 					// continue;
 				}
 
-				if ($one_post_type->show_ui) {
+				$arr_page_options[] = "post-type-dashboard-$name";
+				$arr_page_options[] = "post-type-menu-$name";
+				echo "<p>";
+				echo "<strong>".$one_post_type->label."</strong>";
+				
+				$checked = (in_array($name, $options["dashboard"])) ? " checked='checked' " : "";
+				echo "<br />";
+				echo "<input $checked type='checkbox' name='post-type-dashboard[]' value='$name' id='post-type-dashboard-$name' /> <label for='post-type-dashboard-$name'>" . __("On dashboard", 'cms-tree-page-view') . "</label>";
+				
+				$checked = (in_array($name, $options["menu"])) ? " checked='checked' " : "";
+				echo "<br />";
+				echo "<input $checked type='checkbox' name='post-type-menu[]' value='$name' id='post-type-menu-$name' /> <label for='post-type-menu-$name'>" . __("In menu", 'cms-tree-page-view') . "</label>";
+				echo "</p>";
 
-					$arr_page_options[] = "post-type-dashboard-$name";
-					$arr_page_options[] = "post-type-menu-$name";
-					echo "<p>";
-					echo "<strong>".$one_post_type->label."</strong>";
-					
-					$checked = (in_array($name, $options["dashboard"])) ? " checked='checked' " : "";
-					echo "<br />";
-					echo "<input $checked type='checkbox' name='post-type-dashboard[]' value='$name' id='post-type-dashboard-$name' /> <label for='post-type-dashboard-$name'>" . __("On dashboard", 'cms-tree-page-view') . "</label>";
-					
-					$checked = (in_array($name, $options["menu"])) ? " checked='checked' " : "";
-					echo "<br />";
-					echo "<input $checked type='checkbox' name='post-type-menu[]' value='$name' id='post-type-menu-$name' /> <label for='post-type-menu-$name'>" . __("In menu", 'cms-tree-page-view') . "</label>";
-					echo "</p>";
-				}
 			}
 
 			?>
@@ -294,6 +314,8 @@ function cms_tpv_is_post_type_hierarchical($post_type_object) {
  */
 function cms_tpv_print_common_tree_stuff($post_type = "") {
 
+	global $sitepress, $cms_tpv_view;
+
 	if (!$post_type) {
 		$post_type = cms_tpv_get_selected_post_type();
 	}
@@ -303,13 +325,19 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 
 	$pages = cms_tpv_get_pages($get_pages_args);
 
+	// check if wpml is active and if this post type is one of its enabled ones
 	$wpml_current_lang = "";
-	if (defined("ICL_SITEPRESS_VERSION") && $post_type == "page") {
-		global $sitepress;
-		$wpml_current_lang = $sitepress->get_current_language();
+	$wmpl_active_for_post = FALSE;
+	if (defined("ICL_SITEPRESS_VERSION")) {
+
+		$wpml_post_types = $sitepress->get_translatable_documents();
+		if (array_key_exists($post_type, $wpml_post_types)) {
+			$wmpl_active_for_post = TRUE;
+			$wpml_current_lang = $sitepress->get_current_language();
+		}
+	
 	}
 
-	global $cms_tpv_view;
 	// output js for the root/top level
 	// function cms_tpv_print_childs($pageID, $view = "all", $arrOpenChilds = null, $post_type) {
 	// @todo: make into function since used at other places
@@ -335,9 +363,9 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 		<input type="hidden" name="cms_tpv_meta_wpml_language" value="<?php echo $wpml_current_lang ?>" />
 		<?php
 
-		// check if WPML is activated
-		// if: show a language-menu
-		if (defined("ICL_SITEPRESS_VERSION") && $post_type == "page") {
+		// check if WPML is activated and show a language-menu
+		if ($wmpl_active_for_post) {
+
 			$wpml_langs = icl_get_languages();
 			$wpml_active_lang = null;
 			if (sizeof($wpml_langs)>=1) {
@@ -356,22 +384,9 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 				$lang_out .= "</ul>";
 				echo $lang_out;
 			}
+
 		}
-		/*
-		Array
-		(
-		    [en] => Array
-		        (
-		            [id] => 1
-		            [active] => 1
-		            [native_name] => English
-		            [language_code] => en
-		            [translated_name] => English
-		            [url] => http://localhost/wordpress3
-		            [country_flag_url] => http://localhost/wordpress3/wp-content/plugins/sitepress-multilingual-cms/res/flags/en.png
-		        )
-		*/
-	
+
 		if (empty($pages)) {
 			echo '<div class="updated fade below-h2"><p>' . __("No posts found.", 'cms-tree-page-view') . '</p></div>';
 		} else {
@@ -734,15 +749,15 @@ function cms_tpv_print_childs($pageID, $view = "all", $arrOpenChilds = null, $po
 				"data": {
 					"title": "<?php echo $title ?>",
 					"attr": {
-						"href": "<?php echo $editLink ?>",
-						"xid": "cms-tpv-<?php echo $onePage->ID ?>"
-					},
-					"xicon": "<?php echo CMS_TPV_URL . "images/page_white_text.png" ?>"
+						"href": "<?php echo $editLink ?>"
+						<?php /* , "xid": "cms-tpv-<?php echo $onePage->ID ?>" */ ?>
+					}<?php /*,
+					"xicon": "<?php echo CMS_TPV_URL . "images/page_white_text.png" ?>"*/?>
 				},
 				"attr": {
-					"xhref": "<?php echo $editLink ?>",
+					<?php /* "xhref": "<?php echo $editLink ?>", */ ?>
 					"id": "cms-tpv-<?php echo $onePage->ID ?>",
-					"xtitle": "<?php _e("Click to edit. Drag to move.", 'cms-tree-page-view') ?>",
+					<?php /* "xtitle": "<?php _e("Click to edit. Drag to move.", 'cms-tree-page-view') ?>", */ ?>
 					"class": "<?php echo $user_can_edit_page_css ?>"
 				},
 				<?php echo $strState ?>
@@ -764,6 +779,7 @@ function cms_tpv_print_childs($pageID, $view = "all", $arrOpenChilds = null, $po
 				}
 				<?php
 				// if id is in $arrOpenChilds then also output children on this one
+				// TODO: if only "a few" (< 100?) pages then load all, but keep closed, so we don't have to do the ajax thingie
 				if ($hasChildren && isset($arrOpenChilds) && in_array($onePage->ID, $arrOpenChilds)) {
 					?>, "children": <?php
 					cms_tpv_print_childs($onePage->ID, $view, $arrOpenChilds, $post_type);
@@ -1123,19 +1139,48 @@ function cms_tpv_install() {
 	// after upgrading/re-enabling the plugin, also re-enable the little please-donate-box
 	update_option('cms_tpv_show_annoying_little_box', 1);
 	
-	// check and update version
-	$version = get_option('cms_tpv_version', 0);
-	if ($version <= 0) {
-		// first install or pre custom posts version:
-		// make sure pages are enabled by default
-		$options = array();
-		$options["dashboard"] = array("page");
-		$options["menu"] = array("page");
-		update_option('cms_tpv_options', $options);
-	}
-	
+	// first install or pre custom posts version:
+	// make sure pages are enabled by default
+	// run on admin_init so most themes and plugins have time to setup their things. late prio too.
+	add_action("admin_init", "cms_tpv_setup_defaults", 999);
+
 	// set to current version
 	update_option('cms_tpv_version', CMS_TPV_VERSION);
+}
+
+/**
+ * setup some defaults
+ */
+function cms_tpv_setup_defaults() {
+
+	// check and update version
+	$version = get_option('cms_tpv_version', 0);
+
+	//$version = 0;
+
+	if ($version <= 0) {
+
+		$options = array();
+
+		// Add pages to both dashboard and menu
+		$options["dashboard"] = array("page");
+		$options["menu"] = array("page");
+
+		// since 0.10.1 enable menu for all hierarchical custom post types
+		$post_types = get_post_types(array(
+			"show_ui" 		=> TRUE,
+			"hierarchical" 	=> TRUE
+		), "objects");
+
+		foreach ($post_types as $one_post_type) {
+			$options["menu"][] = $one_post_type->name;
+		}
+
+		$options["menu"] = array_unique($options["menu"]);
+
+		update_option('cms_tpv_options', $options);
+	}
+
 }
 
 // when plugins are loaded, check if current plugin version is same as stored

@@ -4,7 +4,7 @@ Donate link: http://eskapism.se/sida/donate/
 Tags: page, pages, posts, custom posts, tree, cms, dashboard, overview, drag-and-drop, rearrange, management, manage, admin
 Requires at least: 3.0
 Tested up to: 3.5
-Stable tag: 0.8.14
+Stable tag: 0.10.1
 
 Adds a tree of all your pages or custom posts. Use drag & drop to reorder your pages, and edit, view, add, and search your pages.
 
@@ -88,6 +88,17 @@ Now the tree with the pages will be visible both on the dashboard and in the men
 
 == Changelog ==
 
+= 0.10.1 =
+- Fixed popup closing to fast on Firefox.
+- Enable menu item setting by default for hierarchical post types during first install. It was confusing when it was enabled for pages but not for other post types. Consistency!
+- Added link to settings page to plugin listing.
+- Fixed: WPML-stuff now also works on custom post types
+
+= 0.10 =
+- Fixed position of action div. Now it's always to the right of the page name.
+- Fixed so action div never is below the fold of the browser. Instead it's moved up until it's visible.
+- Fixed problem related to hoverIntent and mouseover and drag and drop. There was just to many wierd things going on so I switched to my own solution instead. Let me know if it works ok for you too now again!
+
 = 0.9 =
 - Only output scripts and styles on pages that the plugin uses. This should speed up other parts of the WordPress admin a little tiny itsy bitsy bit.
 - Added a hopefully not to spammy box about donation and stuff. Hopefully it it encourages some of you to give it a good review or maybe even donate some money. I've spent a lot, lot, LOT of time developing this plugin you know ;)
@@ -97,7 +108,6 @@ Now the tree with the pages will be visible both on the dashboard and in the men
 - Changed javascript to to use on() istead on live()
 - Removed hoverIntent since that is included in WordPress by default
 - Started using hoverIndent to make the popup with page actions show after a short while for each page. This also means that you can move outside the actions-pop-up for a short while without the pop up being closed - a thing that annoyed me very much. This makes the whole popup actions div thingie feels less in-your-face all the time. Hope you like it as much as I do!
-- 
 
 = 0.8.14 =
 - Added Estonian translation
