@@ -229,8 +229,7 @@
 .cms_tpv_page_actions {
 	/*transition: all .25s ease-in-out; -webkit-transition: all .25s ease-in-out; -moz-transition: all .25s ease-in-out; -o-transition: all .25s ease-in-out; -ms-transition: all .25s ease-in-out;*/
 	width: auto;
-	min-width: 175px;
-	width: 175px;
+	width: 200px;
 	height: auto;
 	background-color: white;
 	position: absolute;
@@ -357,15 +356,6 @@ p.cms_tpv_action_edit_and_view
 
 .cms_tpv_page_actions_arrow {
 	display: none;
-	/*
-	width: 8px;
-	height: 15px;
-	background: url(images/arrow-left.gif) no-repeat top left;
-	position: absolute;
-	display: block;
-	left: -8px;
-	left: 0px;
-	*/
 }
 
 .cms_tpv_page_actions_columns table td {
@@ -376,10 +366,6 @@ p.cms_tpv_action_edit_and_view
 	display: inline;
 	padding-right: 2px;
 	vertical-align: middle;
-}
-.cms_tpv_page_actions_columns .post-com-count-wrapper {
-}
-.cms_tpv_wrapper .cms_tpv_page_actions_columns a.post-com-count {
 }
 
 li.cms_tpv_user_can_edit_page_no a {
@@ -403,3 +389,66 @@ h4.cms_tpv_page_actions_headline {
 	border-left: 1px solid #E3E3E3;
 }
 
+.cms_tpv_action_add_doit {
+	/*background-color: lightyellow;*/
+	display: none;
+}
+
+.cms_tpv_action_add_doit fieldset {
+	border: 1px solid #ddd;
+	border-left-width: 0;
+	border-right-width: 0;
+	padding: .75em .25em .75em 0;
+}
+
+.cms_tpv_action_add_doit h4,
+.cms_tpv_action_add_doit legend {
+	margin: 0;
+}
+
+.cms_tpv_action_add_doit form > div {
+	margin-top: .75em;
+}
+.cms_tpv_action_add_doit form > div:first-of-type {
+	margin-top: 0;
+}
+
+.cms_tpv_action_add_doit label {
+	margin-right: .5em;
+}
+
+ul.cms_tpv_action_add_doit_pages .ui-state-highlight {
+	display: block;
+}
+
+ul.cms_tpv_action_add_doit_pages {
+	position: relative;
+	margin: 0 0 0 -10px;
+	padding: 0;
+	overflow: auto;
+}
+.cms_tpv_action_add_doit_pages li {
+	display: block;
+	position: relative;
+	float: left;
+	padding: 0 0 0 0;
+	margin: 1px 0 1px 0;
+}
+.cms_tpv_action_add_doit_pages input {
+	float: left;
+	width: 90%;
+	transition: all .25s ease-in-out; -webkit-transition: all .25s ease-in-out; -moz-transition: all .25s ease-in-out; -o-transition: all .25s ease-in-out; -ms-transition: all .25s ease-in-out;
+}
+.cms_tpv_action_add_doit_pages span:first-child {
+	background: transparent url(https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.3/themes/ui-darkness/images/ui-icons_222222_256x240.png) no-repeat -2px -228px;
+	margin-top: 7px;
+	margin-right: 3px;
+	float: left;
+	width: 8px;
+	height: 10px;
+	cursor: move;
+}
+
+.cms_tpv_action_add_doit_pages li:last-child span:first-child {
+	visibility: hidden;
+}

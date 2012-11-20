@@ -1,5 +1,157 @@
 <?php
 
+/**
+ * Use the ajax action-thingie to catch our form with new pages
+ * Add pages and then redirect to...?
+ */
+function cms_tpv_add_pages() {
+
+	#sf_d($_POST);exit;
+	/*
+	Array
+	(
+	    [action] => cms_tpv_add_pages
+	    [cms_tpv_add_new_pages_names] => Array
+	        (
+	            [0] => xxxxx
+	            [1] => yyyy
+	            [2] => 
+	        )
+
+	    [cms_tpv_add_type] => inside
+	    [cms_tpv_add_status] => draft
+	)
+	*/
+
+	$post_position 	= $_POST["cms_tpv_add_type"];
+	$post_status 	= $_POST["cms_tpv_add_status"];
+	$post_names 	= (array) $_POST["cms_tpv_add_new_pages_names"];
+	$ref_post_id	= (int) $_POST["ref_post_id"];
+	
+	if ("published" === $post_status) $post_status = "publish";
+
+	// remove possibly empty posts
+	$arr_post_names = array();
+	foreach ($post_names as $one_post_name) {
+		if ( trim($one_post_name) ) {
+			$arr_post_names[] = $one_post_name;
+		}
+	}
+
+	$arr_post_names_count = sizeof($arr_post_names);
+	
+	// check that there are pages left
+	if (empty($arr_post_names)) die("Error: no pages to add.");
+
+	$ref_post = get_post($ref_post_id);
+	if (NULL === $ref_post) die("Error: could not load reference post.");
+	
+	// Make room for our new pages
+	// Get all pages at a level level and loop until our reference page
+	// and then all pages after that one will get it's menu_order 
+	// increased by the same number as the number of new posts we're gonna add
+	
+	$post_parent = 0;
+	if ("after" === $post_position) {
+		$post_parent = $ref_post->post_parent;
+	} elseif ("inside" === $post_position) {
+		$post_parent = $ref_post->ID;
+	}
+
+	$args = array(
+		"post_status" => "any",
+		"post_type" => $ref_post->post_type,
+		"numberposts" => -1,
+		"offset" => 0,
+		"orderby" => 'menu_order',
+		'order' => 'asc',
+		'post_parent' => $post_parent
+	);
+	$posts = get_posts($args);
+
+	// If posts exist at this level, make room for our new pages by increasing the menu order
+	if (sizeof($posts) > 0)  {
+
+		if ("after" === $post_position) {
+		
+			$has_passed_ref_post = FALSE;
+			foreach ($posts as $one_post) {
+				
+				if ($has_passed_ref_post) {
+					
+					$post_update = array(
+						"ID" => $one_post->ID,
+						"menu_order" => $one_post->menu_order + $arr_post_names_count
+					);
+					$return_id = wp_update_post($post_update);
+					if (0 ===$return_id) die("Error: could not update post with id " . $post_update->ID);
+
+				}
+
+				if ( ! $has_passed_ref_post && $ref_post->ID === $one_post->ID) {
+					$has_passed_ref_post = TRUE;
+				}			
+
+			}
+			
+			$new_menu_order = $ref_post->menu_order;
+
+		}  elseif ("inside" === $post_position) {
+
+			// in inside, place at beginning
+			// so just get first post and use that menu order as base
+			$new_menu_order = $posts[0]->menu_order - $arr_post_names_count;
+			
+		}
+
+
+	} else {
+
+		// no posts, start at 0
+		$new_menu_order = 0;
+
+	}
+
+	$post_parent_id = NULL;
+	if ("after" === $post_position) {
+		$post_parent_id = $ref_post->post_parent;
+	} elseif ("inside" === $post_position) {
+		$post_parent_id = $ref_post->ID;
+	}
+
+	// Done maybe updating menu orders, add the new pages
+	$arr_added_pages_ids = array();
+	foreach ($arr_post_names as $one_new_post_name) {
+
+		$new_menu_order++;
+		$newpost_args = array(
+			"menu_order" => $new_menu_order,
+			"post_parent" => $post_parent_id,
+			"post_status" => $post_status,
+			"post_title" => $one_new_post_name,
+			"post_type" => $ref_post->post_type
+		);
+		$new_post_id = wp_insert_post($newpost_args);
+
+		if (0 === $new_post_id) {
+			die("Error: could not add post");
+		}
+
+		$arr_added_pages_ids[] = $new_post_id;
+
+
+	}
+
+	echo "done. now what?";
+
+	// Done. Redirect to the first page created.
+	$first_post_edit_link = get_edit_post_link($arr_added_pages_ids[0]);
+	wp_redirect($first_post_edit_link);
+
+	exit;
+
+}
+
 // for debug, remember to comment out (yes.. i *know* i will forget this later on...)
 // require("FirePHPCore/FirePHP.class.php");
 // $firephp = FirePHP::getInstance(true);
@@ -442,9 +594,14 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 					<a href="#" title='<?php _e("Edit page", "cms-tree-page-view")?>' class='cms_tpv_action_edit'><?php _e("Edit", "cms-tree-page-view")?></a>
 					<a href="#" title='<?php _e("View page", "cms-tree-page-view")?>' class='cms_tpv_action_view'><?php _e("View", "cms-tree-page-view")?></a>
 				</p>
+
+				<!-- links to add page -->
 				<p class="cms_tpv_action_add_and_edit_page">
+
 					<span class='cms_tpv_action_add_page'><?php echo $post_type_object->labels->add_new_item ?></span>
+					
 					<a href="#" title='<?php _e("Add new page after", "cms-tree-page-view")?>' class='cms_tpv_action_add_page_after'><?php _e("After", "cms-tree-page-view")?></a>
+					
 					<?php
 					// if post type is hierarchical we can add pages inside
 					if (cms_tpv_is_post_type_hierarchical($post_type_object)) {
@@ -453,7 +610,52 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 					// if post status = draft then we can not add pages inside because wordpress currently can not keep its parent if we edit the page
 					?>
 					<!-- <span class="cms_tpv_action_add_page_inside_disallowed"><?php _e("Can not create page inside of a page with draft status", "cms-tree-page-view")?></span> -->
+
 				</p>
+
+				<div class="cms_tpv_action_add_doit">
+					
+					<form method="post" action="<?php echo admin_url( 'admin-ajax.php', 'relative' ); ?>">
+
+						<input type="hidden" name="action" value="cms_tpv_add_pages">
+						<input type="hidden" name="ref_post_id" value="">
+
+						<!-- <fieldset> -->
+
+							<h4>Add page(s)</h4>
+
+							<div>
+								<!-- Pages<br> -->
+								<ul class="cms_tpv_action_add_doit_pages">
+									<li><span></span><input placeholder="Enter title here" type="text" name="cms_tpv_add_new_pages_names[]"></li>
+								</ul>
+							</div>
+
+							<div>
+								Position<br>
+								<label><input type="radio" name="cms_tpv_add_type" value="after"> After</label>
+								<label><input type="radio" name="cms_tpv_add_type" value="inside"> Inside</label>
+							</div>
+
+
+							<div>
+								Status<br>
+								<label><input type="radio" name="cms_tpv_add_status" value="draft" checked> Draft</label>
+								<label><input type="radio" name="cms_tpv_add_status" value="published"> Published</label>
+							</div>
+
+							<div>
+								<input type="submit" value="Add" class="button-primary">
+								or
+								<a href="#" class="cms_tpv_add_cancel">cancel</a>
+							</div>
+
+						<!-- </fieldset> -->
+
+					</form>
+
+				</div>
+
 				<dl>
 					<dt><?php  _e("Last modified", "cms-tree-page-view") ?></dt>
 					<dd>
@@ -463,6 +665,7 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 					<dt><?php  _e("Page ID", "cms-tree-page-view") ?></dt>
 					<dd><span class="cms_tpv_page_actions_page_id"></span></dd>
 				</dl>
+
 				<div class="cms_tpv_page_actions_columns"></div>
 				<span class="cms_tpv_page_actions_arrow"></span>
 			</div>

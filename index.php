@@ -63,6 +63,7 @@ add_action( 'admin_head', "cms_tpv_admin_head" );
 add_action('wp_ajax_cms_tpv_get_childs', 'cms_tpv_get_childs');
 add_action('wp_ajax_cms_tpv_move_page', 'cms_tpv_move_page');
 add_action('wp_ajax_cms_tpv_add_page', 'cms_tpv_add_page');
+add_action('wp_ajax_cms_tpv_add_pages', 'cms_tpv_add_pages');
 
 // activation
 register_activation_hook( WP_PLUGIN_DIR . "/cms-tree-page-view/index.php" , 'cms_tpv_install' );
