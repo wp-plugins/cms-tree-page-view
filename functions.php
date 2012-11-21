@@ -20,6 +20,7 @@ function cms_tpv_add_pages() {
 
 	    [cms_tpv_add_type] => inside
 	    [cms_tpv_add_status] => draft
+	    [lang] => de
 	)
 	*/
 
@@ -27,7 +28,16 @@ function cms_tpv_add_pages() {
 	$post_status 	= $_POST["cms_tpv_add_status"];
 	$post_names 	= (array) $_POST["cms_tpv_add_new_pages_names"];
 	$ref_post_id	= (int) $_POST["ref_post_id"];
-	
+	$lang 			= $_POST["lang"];
+
+	// If lang variable is set, then set some more wpml-related post/get-variables
+	if ($lang) {
+		// post seems to fix creating new posts in selcted lang
+		$_POST["icl_post_language"] = $lang;
+		// $_GET["lang"] = $lang;
+	}
+
+	// make sure the status is publish and nothing else (yes, perhaps I named it bad elsewhere)
 	if ("published" === $post_status) $post_status = "publish";
 
 	// remove possibly empty posts
@@ -58,6 +68,13 @@ function cms_tpv_add_pages() {
 		$post_parent = $ref_post->ID;
 	}
 
+
+	/*
+	perhaps for wpml:
+	suppress_filters=0
+
+	*/
+
 	$args = array(
 		"post_status" => "any",
 		"post_type" => $ref_post->post_type,
@@ -65,9 +82,13 @@ function cms_tpv_add_pages() {
 		"offset" => 0,
 		"orderby" => 'menu_order',
 		'order' => 'asc',
-		'post_parent' => $post_parent
+		'post_parent' => $post_parent,
+		"suppress_filters" => FALSE
 	);
+	//if ($lang) $args["lang"] = $lang;
 	$posts = get_posts($args);
+
+	#sf_d($_GET["lang"]);sf_d($args);sf_d($posts);exit;
 
 	// If posts exist at this level, make room for our new pages by increasing the menu order
 	if (sizeof($posts) > 0)  {
@@ -142,10 +163,8 @@ function cms_tpv_add_pages() {
 
 	}
 
-	echo "done. now what?";
-
 	// Done. Redirect to the first page created.
-	$first_post_edit_link = get_edit_post_link($arr_added_pages_ids[0]);
+	$first_post_edit_link = get_edit_post_link($arr_added_pages_ids[0], "");
 	wp_redirect($first_post_edit_link);
 
 	exit;
@@ -263,6 +282,7 @@ function cms_admin_enqueue_scripts() {
 			"Status_trash_ucase" => ucfirst( __("trash", 'cms-tree-page-view') ),
 			"Password_protected_page" => __("Password protected page", 'cms-tree-page-view'),
 			"Adding_page" => __("Adding page...", 'cms-tree-page-view'),
+			"Adding" => __("Adding ...", 'cms-tree-page-view'),
 		);
 		wp_localize_script( "cms_tree_page_view", 'cmstpv_l10n', $oLocale);
 
@@ -619,35 +639,38 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 
 						<input type="hidden" name="action" value="cms_tpv_add_pages">
 						<input type="hidden" name="ref_post_id" value="">
+						
+						<!-- lang for wpml -->
+						<input type="hidden" name="lang" value="">
 
 						<!-- <fieldset> -->
 
-							<h4>Add page(s)</h4>
+							<h4><?php _e("Add page(s)", "cms-tree-page-view") ?></h4>
 
 							<div>
 								<!-- Pages<br> -->
 								<ul class="cms_tpv_action_add_doit_pages">
-									<li><span></span><input placeholder="Enter title here" type="text" name="cms_tpv_add_new_pages_names[]"></li>
+									<li><span></span><input placeholder="<?php _e("Enter title here") ?>" type="text" name="cms_tpv_add_new_pages_names[]"></li>
 								</ul>
 							</div>
 
 							<div>
 								Position<br>
-								<label><input type="radio" name="cms_tpv_add_type" value="after"> After</label>
-								<label><input type="radio" name="cms_tpv_add_type" value="inside"> Inside</label>
+								<label><input type="radio" name="cms_tpv_add_type" value="after"> <?php _e("After", "cms-tree-page-view") ?></label>
+								<label><input type="radio" name="cms_tpv_add_type" value="inside"> <?php _e("Inside", "cms-tree-page-view") ?></label>
 							</div>
 
 
 							<div>
 								Status<br>
-								<label><input type="radio" name="cms_tpv_add_status" value="draft" checked> Draft</label>
-								<label><input type="radio" name="cms_tpv_add_status" value="published"> Published</label>
+								<label><input type="radio" name="cms_tpv_add_status" value="draft" checked> <?php _e("Draft", "cms-tree-page-view") ?></label>
+								<label><input type="radio" name="cms_tpv_add_status" value="published"> <?php _e("Published", "cms-tree-page-view") ?></label>
 							</div>
 
 							<div>
 								<input type="submit" value="Add" class="button-primary">
-								or
-								<a href="#" class="cms_tpv_add_cancel">cancel</a>
+								<?php _e("or", "cms-tree-page-view") ?>
+								<a href="#" class="cms_tpv_add_cancel"><?php _e("cancel", "cms-tree-page-view") ?></a>
 							</div>
 
 						<!-- </fieldset> -->

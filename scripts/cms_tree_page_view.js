@@ -38,6 +38,7 @@ var cms_tree_page_view = (function ($) {
 		my.setup_listeners();
 	};
 
+	// this is wrong, the action div and doit should be for each container, not for all
 	my.setup_elements = function() {
 		for (var elm in my.selectors) {
 			if (my.selectors.hasOwnProperty(elm))
@@ -49,7 +50,7 @@ var cms_tree_page_view = (function ($) {
 		
 		// When something has been written in one of the page titles: show another row
 		// Also: if more than one row are empty at the end, remove all but the last
-		$(document).on("keyup", "ul.cms_tpv_action_add_doit_pages li:last input", function(e) {
+		$(document).on("keyup", "ul.cms_tpv_action_add_doit_pages li:last-of-type input", function(e) {
 
 			var $t = $(this);
 			var $li = $t.closest("li");
@@ -68,7 +69,8 @@ var cms_tree_page_view = (function ($) {
 		jQuery(document).on("click", "a.cms_tpv_add_cancel", function(e) {
 
 			e.preventDefault();
-			cms_tree_page_view.elements.action_doit.slideUp("fast", function() {
+			var actions_div_doit = cms_tpv_get_page_actions_div_doit(this);
+			actions_div_doit.slideUp("fast", function() {
 
 				// Reset status back to draft
 				$("input[name='cms_tpv_add_status'][value='draft']").attr("checked", true);
@@ -76,9 +78,7 @@ var cms_tree_page_view = (function ($) {
 				// Remove all LIs except the last one
 				$("ul.cms_tpv_action_add_doit_pages").find("li:not(:last)").remove();
 
-
 			});
-
 
 		});
 
@@ -89,7 +89,9 @@ var cms_tree_page_view = (function ($) {
 			var $this = jQuery(this);
 			var post_type = cms_tpv_get_post_type(this);
 			var selected_lang = cms_tpv_get_wpml_selected_lang(this);
-			var post_status = $this.closest("li").data("post_status");
+			var actions_div = cms_tpv_get_page_actions_div(this);
+			var actions_div_doit = cms_tpv_get_page_actions_div_doit(this);
+			var post_status = actions_div.data("post_status");
 
 			var add_type = "";
 			if ($this.hasClass("cms_tpv_action_add_page_after")) {
@@ -98,21 +100,17 @@ var cms_tree_page_view = (function ($) {
 				add_type = "inside";
 			}
 
-			// cms_tree_page_view.log("add page " + add_type);
-
 			// not allowed when status is trash
-			if (post_status == "trash") {
+			if (post_status === "trash" && add_type === "inside") {
 				jAlert(cmstpv_l10n.Can_not_add_page_after_when_status_is_trash);
 				return;
 			}
 
 			// if status is draft then it's not ok to add sub pages
-			if (post_status == "draft") {
+			if (post_status === "draft" && add_type === "inside") {
 				jAlert(cmstpv_l10n.Can_not_add_sub_page_when_status_is_draft);
 				return false;
 			}
-
-			var cms_tpv_action_add_doit_div = div_actions.find("div.cms_tpv_action_add_doit");
 
 			// Make the list sortable
 			$("ul.cms_tpv_action_add_doit_pages").sortable({
@@ -126,31 +124,12 @@ var cms_tree_page_view = (function ($) {
 			});
 
 			// Set up correct values for input fields and radio buttons and then show form/section
-			cms_tpv_action_add_doit_div.find("[name='cms_tpv_add_type'][value='"+add_type+"']").attr("checked", "checked");
-			cms_tpv_action_add_doit_div.find("[name='ref_post_id']").val( div_actions.data("post_id") );
-			cms_tpv_action_add_doit_div.slideDown("fast", function() {
-				cms_tpv_action_add_doit_div.find("[name='cms_tpv_add_new_pages_names[]']").focus();
+			actions_div_doit.find("[name='lang']").val(selected_lang);
+			actions_div_doit.find("[name='cms_tpv_add_type'][value='"+add_type+"']").attr("checked", "checked");
+			actions_div_doit.find("[name='ref_post_id']").val( actions_div.data("post_id") );
+			actions_div_doit.slideDown("fast", function() {
+				actions_div_doit.find("[name='cms_tpv_add_new_pages_names[]']").focus();
 			});
-
-			//
-			/*
-			jPrompt(cmstpv_l10n.Enter_title_of_new_page, "", "CMS Tree Page View", function(new_page_title) {
-				if (new_page_title) {
-					var pageID = $this.parents("li:first").attr("id");
-					jQuery(".cms_tpv_message").html("<p>"+cmstpv_l10n.Adding_page+"</p>").slideDown("fast");
-					jQuery.post(ajaxurl, {
-						"action": "cms_tpv_add_page",
-						"pageID": pageID,
-						"type": "after",
-						"page_title": new_page_title,
-						"post_type": post_type,
-						"wpml_lang": selected_lang
-					}, function(data, textStatus) {
-						document.location = data;
-					});
-				}
-			});
-			*/
 
 			
 		}); // click add page
@@ -158,15 +137,11 @@ var cms_tree_page_view = (function ($) {
 		// submit form with new pages
 		jQuery(document).on("submit", "div.cms_tpv_action_add_doit form", function(e) {
 
-			//e.preventDefault();
-
-			//console.log("submit baby");
-
-
+			e.preventDefault();
+			var $form = $(this);
+			$form.find("input[type='submit']").val( cmstpv_l10n.Adding ).attr("disabled", true);
 
 		});
-		
-
 
 	};
 
@@ -315,6 +290,14 @@ function cms_tpv_mouseover(e) {
 function cms_tpv_tree_loaded(event, data) {
 
 	var $container = jQuery(event.target);
+	var actions_div_doit = cms_tpv_get_page_actions_div_doit(event.target);
+
+	// init = clear up some things
+	actions_div_doit.hide();
+	$container.find("li.has-visible-actions").removeClass("has-visible-actions");
+	$container.find("a.hover").removeClass("hover");
+	$container.find("div.cms_tpv_page_actions").removeClass("cms_tpv_page_actions_visible");
+	$container.find("div.cms_tpv_page_actions_visible").removeClass("cms_tpv_page_actions_visible");
 
 	// when mouse enters a/link
 	// start timer and if no other a/link has been moused over since it started it's ok to show this one
@@ -339,14 +322,19 @@ function cms_tpv_tree_loaded(event, data) {
 		// create new timer to show action div, no matter if one exists already
 		// but not if we are creating new pages
 		cms_tree_page_view.log("add timer for mousover on link");
-		if ( ! cms_tree_page_view.elements.action_doit.is(":visible") ) {
-			
+
+		if ( ! actions_div_doit.is(":visible") ) {
+
 			var timeoutID = setTimeout(function(e) {
 				cms_tpv_mouseover_li(e);
 			}, 500, e);
 
+			console.log("timer added");
+
 			$container.data("cmstpv_global_link_timer", timeoutID);
 
+		} else {
+			console.log("timer not added because doit visible");
 		}
 
 	});
@@ -367,8 +355,6 @@ function cms_tpv_tree_loaded(event, data) {
 		$container.find("a.hover").removeClass("hover");
 		$wrapper.find("div.cms_tpv_page_actions").removeClass("cms_tpv_page_actions_visible");
 
-
-
 	});
 
 }
@@ -387,56 +373,18 @@ function cms_tpv_get_wpml_selected_lang(elm) {
 function cms_tpv_get_page_actions_div(elm) {
 	return jQuery(elm).closest("div.cms_tpv_wrapper").find("div.cms_tpv_page_actions");
 }
+
+function cms_tpv_get_page_actions_div_doit(elm) {
+	return jQuery(elm).closest("div.cms_tpv_wrapper").find("div.cms_tpv_action_add_doit");
+}
+
+
 function cms_tpv_get_wrapper(elm) {
 	var $wrapper = jQuery(elm).closest("div.cms_tpv_wrapper");
 	return $wrapper;
 }
 
 
-
-// Click on link to add page insde another page
-/*
-jQuery(document).on("click", "a.cms_tpv_action_add_page_inside", function(e) {
-
-	var $this = jQuery(this);
-	var post_type = cms_tpv_get_post_type(this);
-	var selected_lang = cms_tpv_get_wpml_selected_lang(this);
-	var post_status = $this.closest("li").data("post_status");
-
-	// check page status, because we cant add a page inside a page with status draft or status trash
-	// if we edit the page wordpress will forget the parent
-	//$li.data("jstree").permalink;
-	//var post_status = li.data("jstree").post_status;
-	if (post_status == "draft") {
-		jAlert(cmstpv_l10n.Can_not_add_sub_page_when_status_is_draft);
-		return false;
-	}
-
-	// not allowed when status is trash
-	if (post_status == "trash") {
-		jAlert(cmstpv_l10n.Can_not_add_sub_page_when_status_is_trash);
-		return false;
-	}
-	
-	jPrompt(cmstpv_l10n.Enter_title_of_new_page, "", "CMS Tree Page View", function(new_page_title) {
-		if (new_page_title) {
-			var pageID = $this.parents("li:first").attr("id");
-			jQuery(".cms_tpv_message").html("<p>" + cmstpv_l10n.Adding_page + "</p>").slideDown("fast");
-			jQuery.post(ajaxurl, {
-				"action": "cms_tpv_add_page",
-				"pageID": pageID,
-				"type": "inside",
-				"page_title": new_page_title,
-				"post_type": post_type,
-				"wpml_lang": selected_lang
-			}, function(data, textStatus) {
-				document.location = data;
-			});
-		}
-	});
-	
-});
-*/
 
 
 // check if tree is beging dragged
@@ -451,8 +399,8 @@ function cms_tpv_mouseover_li(e) {
 
 	var $target = jQuery(e.target);
 	var $li = $target.closest("li");
-
 	var div_actions_for_post_type = cms_tpv_get_page_actions_div($li);
+	var actions_div_doit = cms_tpv_get_page_actions_div_doit($li);
 	var $cms_tpv_container = $li.closest("div.cms_tpv_container");
 
 	if (cms_tpv_is_dragging() === false) {
@@ -463,6 +411,9 @@ function cms_tpv_mouseover_li(e) {
 		if (is_visible) {
 			// do nada
 		} else {
+
+			// Add info to the action div from the li
+			div_actions_for_post_type.data("post_status", $li.data("post_status"));
 
 			// Remove classes on all elements
 			$cms_tpv_container.find("li.has-visible-actions").removeClass("has-visible-actions");
@@ -518,7 +469,6 @@ function cms_tpv_mouseover_li(e) {
 			} else {
 				div_actions_for_post_type.removeClass("cms_tpv_page_actions_visible_from_bottom");
 			}
-
 			
 			// check if user is allowed to edit page
 			var $cms_tpv_action_add_and_edit_page = div_actions_for_post_type.find(".cms_tpv_action_add_and_edit_page");
@@ -558,7 +508,8 @@ jQuery(document).on("mouseleave", "div.cms_tpv_container", function(e) {
 	}
 
 	// Don't hide if in add-pages-mode
-	if ( cms_tree_page_view.elements.action_doit.is(":visible") )
+	var actions_div_doit = cms_tpv_get_page_actions_div_doit(this);
+	if ( actions_div_doit.is(":visible") )
 		return;
 
 	// Maybe hide popup after a short while
@@ -644,22 +595,24 @@ function cms_tpv_bind_clean_node() {
 		data.r - the drop target
 		*/
 		
+		var node_id,
+			ref_node_id;
 		if (nodePosition == "before") {
-			var node_id = jQuery( nodeBeingMoved ).attr( "id" );
+			node_id = jQuery( nodeBeingMoved ).attr( "id" );
 			ref_node_id = jQuery( nodeRef ).attr( "id" );
 		} else if (nodePosition == "after") {
-			var node_id = jQuery( nodeBeingMoved ).attr( "id" );
+			node_id = jQuery( nodeBeingMoved ).attr( "id" );
 			ref_node_id = jQuery( nodeR ).attr( "id" );
 		} else if (nodePosition == "inside") {
-			var node_id = jQuery( nodeBeingMoved ).attr( "id" );
+			node_id = jQuery( nodeBeingMoved ).attr( "id" );
 			ref_node_id = jQuery( nodeR ).attr( "id" );
 		}
 		
 		// Update parent or menu order
 		jQuery.post(ajaxurl, {
-				action: "cms_tpv_move_page", 
-				"node_id": node_id, 
-				"ref_node_id": ref_node_id, 
+				action: "cms_tpv_move_page",
+				"node_id": node_id,
+				"ref_node_id": ref_node_id,
 				"type": nodePosition,
 				"icl_post_language": selected_lang
 			}, function(data, textStatus) {
@@ -783,6 +736,7 @@ jQuery(document).on("click", "a.cms_tvp_view_trash", function() {
 
 // change lang
 jQuery(document).on("click", "a.cms_tvp_switch_lang", function(e) {
+	
 	$wrapper = cms_tpv_get_wrapper(this);
 	$wrapper.find("ul.cms_tvp_switch_langs a").removeClass("current");
 	jQuery(this).addClass("current");
@@ -798,6 +752,11 @@ jQuery(document).on("click", "a.cms_tvp_switch_lang", function(e) {
 	return false;
 
 });
+
+function cms_tpv_hide_action_div() {
+	
+}
+
 
 function cms_tpv_get_current_view(elm) {
 	
@@ -819,9 +778,11 @@ function cms_tvp_set_view(view, elm) {
 
 	var div_actions_for_post_type = cms_tpv_get_page_actions_div(elm);
 	$wrapper.append(div_actions_for_post_type);
-
 	$wrapper.find(".cms_tvp_view_all, .cms_tvp_view_public, .cms_tvp_view_trash").removeClass("current");
 	$wrapper.find(".cms_tpv_container").jstree("destroy").html("");
+
+	$wrapper.find("div.cms_tpv_page_actions").removeClass("cms_tpv_page_actions_visible");
+
 	cms_tpv_bind_clean_node();
 
 	if (view == "all") {
@@ -833,24 +794,11 @@ function cms_tvp_set_view(view, elm) {
 	} else {
 		
 	}
-
-	// Hide actions if open
-	var $cms_tpv_container = $wrapper.find("div.cms_tpv_container");
-	$cms_tpv_container.find("li.has-visible-actions").removeClass("has-visible-actions");
-	$cms_tpv_container.find("a.hover").removeClass("hover");
-	$cms_tpv_container.find("div.cms_tpv_page_actions").removeClass("cms_tpv_page_actions_visible");
-	jQuery("div.cms_tpv_page_actions_visible").removeClass("cms_tpv_page_actions_visible");
 	
 	var treeOptionsTmp = jQuery.extend(true, {}, treeOptions);
 	treeOptionsTmp.json_data.ajax.url = ajaxurl + CMS_TPV_AJAXURL + view + "&post_type=" + cms_tpv_get_post_type(elm) + "&lang=" + cms_tpv_get_wpml_selected_lang(elm);
 
 	$wrapper.find(".cms_tpv_container").bind("loaded.jstree open_node.jstree", cms_tpv_tree_loaded);
 	$wrapper.find(".cms_tpv_container").jstree(treeOptionsTmp);
-
-	/*
-	__calback loaded jquery.jstree.js:238
-	__calback reopen jquery.jstree.js:238
-	__calback reload_nodes
-	*/
 
 }

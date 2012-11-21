@@ -88,6 +88,11 @@ Now the tree with the pages will be visible both on the dashboard and in the men
 
 == Changelog ==
 
+= 0.10.x =
+- New: create multiple pages at once! Add multiple pages faster than ever before!
+- Fixed: adds new pages with the correct and selected WPML-language
+- Misc fixes
+
 = 0.10.1 =
 - Fixed popup closing to fast on Firefox.
 - Enable menu item setting by default for hierarchical post types during first install. It was confusing when it was enabled for pages but not for other post types. Consistency!
