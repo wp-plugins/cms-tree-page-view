@@ -40,10 +40,18 @@
 	display: inline;
 }
 
+.cms-tpv-subsubsub li a {
+	text-decoration: none;
+}
+
 .cms-tpv-subsubsub li a.current {
 	font-weight: bold;
-	text-decoration: none;
 	color: black;
+}
+
+.cms-tpv-subsubsub li a.current .count {
+	font-weight: normal;
+	color: #999x;
 }
 
 .pages_page_cms-tpv-pages-page .cms-tpv-subsubsub li {

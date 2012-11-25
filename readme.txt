@@ -91,6 +91,10 @@ Now the tree with the pages will be visible both on the dashboard and in the men
 
 == Changelog ==
 
+= 1.x =
+- Added "Add new"-link next to headline, to better match the regular post overview page + it makes it possible to add new pages/posts when there are no pages/posts added (previously there needed to be at least one post added to be able to add new posts)
+- Added post count in parenthesis after each post status. Also makes the page match the regular post overview page a it more. Works for both built in post types and custom post types + if WPML is installed it will show post count for each language too.
+
 = 1.0 =
 - New: create multiple pages at once! Add multiple pages faster than ever before! You can ever select if the new pages should be drafts or published. And ever drag and drop the pages to get the correct order even before adding them. I know - it's awesome!
 - Fixed: adds new pages with the correct and selected WPML-language

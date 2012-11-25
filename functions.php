@@ -481,12 +481,54 @@ function cms_tpv_is_post_type_hierarchical($post_type_object) {
 	return $is_hierarchical;
 }
 
+
+function cms_tpv_get_wpml_post_counts($post_type) {
+
+	global $wpdb;
+
+	$arr_statuses = array("publish", "draft", "trash");
+	$arr_counts = array();
+
+	foreach ($arr_statuses as $post_status) {
+
+		$extra_cond = "";
+		if ($post_status){
+			$extra_cond .= " AND post_status = '" . $post_status . "'";
+		}
+		if ($post_status != 'trash'){
+			$extra_cond .= " AND post_status <> 'trash'";
+		}
+		$extra_cond .= " AND post_status <> 'auto-draft'";
+		$sql = "
+			SELECT language_code, COUNT(p.ID) AS c FROM {$wpdb->prefix}icl_translations t
+			JOIN {$wpdb->posts} p ON t.element_id=p.ID
+			JOIN {$wpdb->prefix}icl_languages l ON t.language_code=l.code AND l.active = 1
+			WHERE p.post_type='{$post_type}' AND t.element_type='post_{$post_type}' {$extra_cond}
+			GROUP BY language_code
+		";
+		$res = $wpdb->get_results($sql);
+
+		$langs['all'] = 0;
+		foreach($res as $r) {
+			$langs[$r->language_code] = $r->c;
+			$langs['all'] += $r->c;
+		}
+
+		$arr_counts[$post_status] = $langs;
+
+	}
+
+	return $arr_counts;
+
+}
+
+
 /**
  * Print tree stuff that is common for both dashboard and page
  */
 function cms_tpv_print_common_tree_stuff($post_type = "") {
 
-	global $sitepress, $cms_tpv_view;
+	global $sitepress, $cms_tpv_view, $wpdb;
 
 	if (!$post_type) {
 		$post_type = cms_tpv_get_selected_post_type();
@@ -508,6 +550,37 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 			$wpml_current_lang = $sitepress->get_current_language();
 		}
 	
+	}
+
+	$status_data_attributes = array("all" => "", "publish" => "", "trash" => "");
+
+	// Calculate post counts
+	if ($wpml_current_lang) {
+
+		// Count code for WPML, mostly taken/inspired from  WPML Multilingual CMS, sitepress.class.php
+		$langs = array();
+		
+		$wpml_post_counts = cms_tpv_get_wpml_post_counts($post_type);
+		
+		$post_count_all = $wpml_post_counts["publish"][$wpml_current_lang] + $wpml_post_counts["draft"][$wpml_current_lang];
+		$post_count_publish	= $wpml_post_counts["publish"][$wpml_current_lang];
+		$post_count_trash	= $wpml_post_counts["trash"][$wpml_current_lang];
+	
+		foreach ($wpml_post_counts["publish"] as $one_wpml_lang => $one_wpml_lang_count) {
+			if ("all" === $one_wpml_lang) continue;
+			$lang_post_count_all 		= $wpml_post_counts["publish"][$one_wpml_lang] + $wpml_post_counts["draft"][$one_wpml_lang];
+			$lang_post_count_publish	= $wpml_post_counts["publish"][$one_wpml_lang];
+			$lang_post_count_trash		= $wpml_post_counts["trash"][$one_wpml_lang];
+			$status_data_attributes["all"] 		.= " data-post-count-{$one_wpml_lang}='{$lang_post_count_all}' ";
+			$status_data_attributes["publish"] 	.= " data-post-count-{$one_wpml_lang}='{$lang_post_count_publish}' ";
+			$status_data_attributes["trash"] 	.= " data-post-count-{$one_wpml_lang}='{$lang_post_count_trash}' ";
+		}
+
+	} else {
+		$post_count = wp_count_posts($post_type);
+		$post_count_all = $post_count->publish + $post_count->future + $post_count->draft + $post_count->pending + $post_count->private;
+		$post_count_publish = $post_count->publish;
+		$post_count_trash = $post_count->trash;
 	}
 
 	// output js for the root/top level
@@ -551,7 +624,15 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 						$wpml_active_lang = $one_lang;
 						$selected = "current";
 					}
-					$lang_out .= "<li><a class='cms_tvp_switch_lang $selected cms_tpv_switch_language_code_{$one_lang["language_code"]}' href='#'>$one_lang_details[display_name]</a> | </li>";
+
+					$lang_count = $wpml_post_counts["publish"][$one_lang["language_code"]] + $wpml_post_counts["draft"][$one_lang["language_code"]];
+
+					$lang_out .= "
+						<li>
+							<a class='cms_tvp_switch_lang $selected cms_tpv_switch_language_code_{$one_lang["language_code"]}' href='#'>
+								$one_lang_details[display_name]
+								<span class='count'>(" . $lang_count . ")</span>
+							</a> | </li>";
 				}
 				$lang_out = preg_replace('/ \| <\/li>$/', "</li>", $lang_out);
 				$lang_out .= "</ul>";
@@ -563,13 +644,29 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 		if (empty($pages)) {
 			echo '<div class="updated fade below-h2"><p>' . __("No posts found.", 'cms-tree-page-view') . '</p></div>';
 		} else {
+
 			// start the party!
+
 			?>
-	
 			<ul class="cms-tpv-subsubsub">
-				<li><a class="cms_tvp_view_all <?php echo ($cms_tpv_view=="all") ? "current" : "" ?>" href="#"><?php _e("All", 'cms-tree-page-view') ?></a> |</li>
-				<li><a class="cms_tvp_view_public <?php echo ($cms_tpv_view=="public") ? "current" : "" ?>" href="#"><?php _e("Public", 'cms-tree-page-view') ?></a> |</li>
-				<li><a class="cms_tvp_view_trash <?php echo ($cms_tpv_view=="trash") ? "current" : "" ?>" href="#"><?php _e("Trash", 'cms-tree-page-view') ?></a></li>
+				<li>
+					<a class="cms_tvp_view_all <?php echo ($cms_tpv_view=="all") ? "current" : "" ?>" href="#" <?php echo $status_data_attributes["all"] ?>>
+						<?php _e("All", 'cms-tree-page-view') ?>
+						<span class="count">(<?php echo $post_count_all ?>)</span>
+					</a> |
+				</li>
+				<li>
+					<a class="cms_tvp_view_public <?php echo ($cms_tpv_view=="public") ? "current" : "" ?>" href="#" <?php echo $status_data_attributes["publish"] ?>>
+						<?php _e("Public", 'cms-tree-page-view') ?>
+						<span class="count">(<?php echo $post_count_publish ?>)</span>
+					</a> |
+				</li>
+				<li>
+					<a class="cms_tvp_view_trash <?php echo ($cms_tpv_view=="trash") ? "current" : "" ?>" href="#" <?php echo $status_data_attributes["trash"] ?>>
+						<?php _e("Trash", 'cms-tree-page-view') ?>
+						<span class="count">(<?php echo $post_count_trash ?>)</span>
+					</a>
+				</li>
 	
 				<?php
 				if (cms_tpv_is_post_type_hierarchical($post_type_object)) {
@@ -589,6 +686,7 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 						<span class="cms_tree_view_search_form_no_hits"><?php _e("Nothing found.", 'cms-tree-page-view') ?></span>
 					</form>
 				</li>
+
 			</ul>
 				
 			<div class="cms_tpv_working">
@@ -710,6 +808,12 @@ function cms_tpv_pages_page() {
 
 	$post_type = cms_tpv_get_selected_post_type();
 	$post_type_object = get_post_type_object($post_type);
+
+	if ( 'post' != $post_type ) {
+		$post_new_file = "post-new.php?post_type=$post_type";
+	} else {
+		$post_new_file = 'post-new.php';
+	}
 	
 	?>
 	<div class="wrap">
@@ -717,6 +821,15 @@ function cms_tpv_pages_page() {
 		<h2><?php
 			$page_title = _x(sprintf('%1$s Tree View', $post_type_object->labels->name), "headline of page with tree", "cms-tree-page-view");
 			echo $page_title;
+
+			// Add "add new" link the same way as the regular post page has
+			if ( current_user_can( $post_type_object->cap->create_posts ) ) {
+				echo ' <a href="' . esc_url( $post_new_file ) . '" class="add-new-h2">' . esc_html( $post_type_object->labels->add_new ) . '</a>';
+			}
+
+
+
+
 		?></h2>
 		
 		<?php
