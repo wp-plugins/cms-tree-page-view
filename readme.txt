@@ -4,7 +4,7 @@ Donate link: http://eskapism.se/sida/donate/
 Tags: page, pages, posts, custom posts, tree, cms, dashboard, overview, drag-and-drop, rearrange, management, manage, admin
 Requires at least: 3.0
 Tested up to: 3.5
-Stable tag: 0.10.1
+Stable tag: 1.0
 
 Adds a tree of all your pages or custom posts. Use drag & drop to reorder your pages, and edit, view, add, and search your pages.
 
@@ -93,6 +93,7 @@ Now the tree with the pages will be visible both on the dashboard and in the men
 - Fixed: adds new pages with the correct and selected WPML-language
 - Added: you can now change the type of a post by draging the post between different trees on the dashboard. So if you have one custom post type called "Cars" and another called "Bicycles" you can now drag a page from the cars tree to the bicicyles tree and the post will converted to that post type. Pretty powerful feature that you used to need a separately plugin to be able to do.
 - Misc fixes
+- Added new POT-file for translators
 - I decided to call this version 1. I've been using this plugin for so long time now and I use it in almost every WordPress project I participate in (all projects with lots of pages), so with this new add-mulitple-page-feature it feels like it's time to go to version 1. Hope you'll agree! :)
 
 = 0.10.1 =
