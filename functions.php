@@ -524,6 +524,7 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 	ob_start();
 	cms_tpv_print_childs(0, $cms_tpv_view, $jstree_open, $post_type);
 	$json_data = ob_get_clean();
+	if (! $json_data) $json_data = '{}';
 	?>
 	<script type="text/javascript">
 		cms_tpv_jsondata.<?php echo $post_type ?> = <?php echo $json_data ?>;
@@ -1239,7 +1240,8 @@ function cms_tpv_move_page() {
 			$post_to_save = array(
 				"ID" => $post_node->ID,
 				"menu_order" => 0,
-				"post_parent" => $post_ref_node->ID
+				"post_parent" => $post_ref_node->ID,
+				"post_type" => $post_ref_node->post_type
 			);
 			wp_update_post( $post_to_save );
 			
@@ -1260,7 +1262,8 @@ function cms_tpv_move_page() {
 			$post_to_save = array(
 				"ID" => $post_node->ID,
 				"menu_order" => $post_ref_node->menu_order,
-				"post_parent" => $post_ref_node->post_parent
+				"post_parent" => $post_ref_node->post_parent,
+				"post_type" => $post_ref_node->post_type
 			);
 			wp_update_post( $post_to_save );
 
@@ -1280,7 +1283,8 @@ function cms_tpv_move_page() {
 			$post_to_save = array(
 				"ID" => $post_node->ID,
 				"menu_order" => $post_ref_node->menu_order+1,
-				"post_parent" => $post_ref_node->post_parent
+				"post_parent" => $post_ref_node->post_parent,
+				"post_type" => $post_ref_node->post_type
 			);
 			wp_update_post( $post_to_save );
 			

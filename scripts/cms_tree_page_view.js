@@ -50,16 +50,17 @@ var cms_tree_page_view = (function ($) {
 		
 		// When something has been written in one of the page titles: show another row
 		// Also: if more than one row are empty at the end, remove all but the last
-		$(document).on("keyup", "ul.cms_tpv_action_add_doit_pages li:last-of-type input", function(e) {
-
+		$(document).on("keyup", "ul.cms_tpv_action_add_doit_pages li:last-child input", function(e) {
+			my.log(123);
 			var $t = $(this);
 			var $li = $t.closest("li");
 
 			if ($.trim($t.val()) !== "") {
 			
-				var $new_li = $li.clone();
+				var $new_li = $li.clone().hide();
 				$new_li.find("input").val("");
 				$li.after( $new_li );
+				$new_li.slideDown();
 			
 			}
 
@@ -137,7 +138,8 @@ var cms_tree_page_view = (function ($) {
 		// submit form with new pages
 		jQuery(document).on("submit", "div.cms_tpv_action_add_doit form", function(e) {
 
-			e.preventDefault();
+			//e.preventDefault();
+
 			var $form = $(this);
 			$form.find("input[type='submit']").val( cmstpv_l10n.Adding ).attr("disabled", true);
 

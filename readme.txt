@@ -88,10 +88,12 @@ Now the tree with the pages will be visible both on the dashboard and in the men
 
 == Changelog ==
 
-= 0.10.x =
-- New: create multiple pages at once! Add multiple pages faster than ever before!
+= 1.0 =
+- New: create multiple pages at once! Add multiple pages faster than ever before! You can ever select if the new pages should be drafts or published. And ever drag and drop the pages to get the correct order even before adding them. I know - it's awesome!
 - Fixed: adds new pages with the correct and selected WPML-language
+- Added: you can now change the type of a post by draging the post between different trees on the dashboard. So if you have one custom post type called "Cars" and another called "Bicycles" you can now drag a page from the cars tree to the bicicyles tree and the post will converted to that post type. Pretty powerful feature that you used to need a separately plugin to be able to do.
 - Misc fixes
+- I decided to call this version 1. I've been using this plugin for so long time now and I use it in almost every WordPress project I participate in (all projects with lots of pages), so with this new add-mulitple-page-feature it feels like it's time to go to version 1. Hope you'll agree! :)
 
 = 0.10.1 =
 - Fixed popup closing to fast on Firefox.
