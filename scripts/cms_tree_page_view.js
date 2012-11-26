@@ -51,7 +51,7 @@ var cms_tree_page_view = (function ($) {
 		// When something has been written in one of the page titles: show another row
 		// Also: if more than one row are empty at the end, remove all but the last
 		$(document).on("keyup", "ul.cms_tpv_action_add_doit_pages li:last-child input", function(e) {
-			my.log(123);
+
 			var $t = $(this);
 			var $li = $t.closest("li");
 
@@ -331,12 +331,12 @@ function cms_tpv_tree_loaded(event, data) {
 				cms_tpv_mouseover_li(e);
 			}, 500, e);
 
-			console.log("timer added");
+			//console.log("timer added");
 
 			$container.data("cmstpv_global_link_timer", timeoutID);
 
 		} else {
-			console.log("timer not added because doit visible");
+			//console.log("timer not added because doit visible");
 		}
 
 	});
@@ -774,6 +774,9 @@ function cms_tpv_get_current_view(elm) {
 
 }
 
+/**
+ * Sets the view; load pages for the current lang + post type + status
+ */
 function cms_tvp_set_view(view, elm) {
 
 	var $wrapper = jQuery(elm).closest(".cms_tpv_wrapper");

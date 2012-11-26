@@ -244,7 +244,9 @@ function cms_admin_enqueue_scripts() {
 
 	if (cms_tpv_is_one_of_our_pages()) {
 
-		wp_enqueue_script( "jquery-cookie", CMS_TPV_URL . "scripts/jquery.biscuit.js", array("jquery")); // renamed from cookie to fix problems with mod_security
+		// renamed from cookie to fix problems with mod_security
+		wp_enqueue_script( "jquery-cookie", CMS_TPV_URL . "scripts/jquery.biscuit.js", array("jquery"));
+		wp_enqueue_script( "jquery-ui-sortable");
 		wp_enqueue_script( "jquery-jstree", CMS_TPV_URL . "scripts/jquery.jstree.js", false, CMS_TPV_VERSION);
 		wp_enqueue_script( "jquery-alerts", CMS_TPV_URL . "scripts/jquery.alerts.js", false, CMS_TPV_VERSION);
 		// wp_enqueue_script( "hoverIntent");
@@ -562,9 +564,9 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 		
 		$wpml_post_counts = cms_tpv_get_wpml_post_counts($post_type);
 		
-		$post_count_all = $wpml_post_counts["publish"][$wpml_current_lang] + $wpml_post_counts["draft"][$wpml_current_lang];
-		$post_count_publish	= $wpml_post_counts["publish"][$wpml_current_lang];
-		$post_count_trash	= $wpml_post_counts["trash"][$wpml_current_lang];
+		$post_count_all = @$wpml_post_counts["publish"][$wpml_current_lang] + @$wpml_post_counts["draft"][$wpml_current_lang];
+		$post_count_publish	= @$wpml_post_counts["publish"][$wpml_current_lang];
+		$post_count_trash	= @$wpml_post_counts["trash"][$wpml_current_lang];
 	
 		foreach ($wpml_post_counts["publish"] as $one_wpml_lang => $one_wpml_lang_count) {
 			if ("all" === $one_wpml_lang) continue;
@@ -625,7 +627,7 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 						$selected = "current";
 					}
 
-					$lang_count = $wpml_post_counts["publish"][$one_lang["language_code"]] + $wpml_post_counts["draft"][$one_lang["language_code"]];
+					$lang_count = @$wpml_post_counts["publish"][$one_lang["language_code"]] + @$wpml_post_counts["draft"][$one_lang["language_code"]];
 
 					$lang_out .= "
 						<li>
@@ -642,13 +644,17 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 		}
 
 		if (empty($pages)) {
+		
 			echo '<div class="updated fade below-h2"><p>' . __("No posts found.", 'cms-tree-page-view') . '</p></div>';
-		} else {
+		
+		}
+
+		if (true) {
 
 			// start the party!
 
 			?>
-			<ul class="cms-tpv-subsubsub">
+			<ul class="cms-tpv-subsubsub hidden">
 				<li>
 					<a class="cms_tvp_view_all <?php echo ($cms_tpv_view=="all") ? "current" : "" ?>" href="#" <?php echo $status_data_attributes["all"] ?>>
 						<?php _e("All", 'cms-tree-page-view') ?>
