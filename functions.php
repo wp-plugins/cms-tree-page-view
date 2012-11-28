@@ -654,20 +654,20 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 			// start the party!
 
 			?>
-			<ul class="cms-tpv-subsubsub hidden">
-				<li>
-					<a class="cms_tvp_view_all <?php echo ($cms_tpv_view=="all") ? "current" : "" ?>" href="#" <?php echo $status_data_attributes["all"] ?>>
+			<ul class="cms-tpv-subsubsub cms-tpv-subsubsub-select-view">
+				<li class="cms_tvp_view_is_status_view">
+					<a class="cms_tvp_view_all  <?php echo ($cms_tpv_view=="all") ? "current" : "" ?>" href="#" <?php echo $status_data_attributes["all"] ?>>
 						<?php _e("All", 'cms-tree-page-view') ?>
 						<span class="count">(<?php echo $post_count_all ?>)</span>
 					</a> |
 				</li>
-				<li>
+				<li class="cms_tvp_view_is_status_view">
 					<a class="cms_tvp_view_public <?php echo ($cms_tpv_view=="public") ? "current" : "" ?>" href="#" <?php echo $status_data_attributes["publish"] ?>>
 						<?php _e("Public", 'cms-tree-page-view') ?>
 						<span class="count">(<?php echo $post_count_publish ?>)</span>
 					</a> |
 				</li>
-				<li>
+				<li class="cms_tvp_view_is_status_view">
 					<a class="cms_tvp_view_trash <?php echo ($cms_tpv_view=="trash") ? "current" : "" ?>" href="#" <?php echo $status_data_attributes["trash"] ?>>
 						<?php _e("Trash", 'cms-tree-page-view') ?>
 						<span class="count">(<?php echo $post_count_trash ?>)</span>

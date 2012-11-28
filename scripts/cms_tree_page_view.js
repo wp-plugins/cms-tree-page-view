@@ -327,11 +327,9 @@ function cms_tpv_tree_loaded(event, data) {
 
 		if ( ! actions_div_doit.is(":visible") ) {
 
-			var timeoutID = setTimeout(function(e) {
+			var timeoutID = setTimeout((function() {
 				cms_tpv_mouseover_li(e);
-			}, 500, e);
-
-			//console.log("timer added");
+			}), 500, e);
 
 			$container.data("cmstpv_global_link_timer", timeoutID);
 
@@ -385,8 +383,6 @@ function cms_tpv_get_wrapper(elm) {
 	var $wrapper = jQuery(elm).closest("div.cms_tpv_wrapper");
 	return $wrapper;
 }
-
-
 
 
 // check if tree is beging dragged
@@ -546,7 +542,7 @@ jQuery(document).on("mouseenter", "div.cms_tpv_page_actions", function(e) {
 	var $wrapper = $this.closest("div.cms_tpv_wrapper");
 	var $container = $wrapper.find("div.cms_tpv_container");
 	var timer = $container.data("cmstpv_global_link_timer");
-	// console.log("back to action div");
+	
 	clearTimeout(timer);
 
 });
@@ -736,18 +732,38 @@ jQuery(document).on("click", "a.cms_tvp_view_trash", function() {
 });
 
 
-// change lang
+// click on link to change WPML-language
 jQuery(document).on("click", "a.cms_tvp_switch_lang", function(e) {
 	
 	$wrapper = cms_tpv_get_wrapper(this);
+
+	// Mark clicked link as selected
 	$wrapper.find("ul.cms_tvp_switch_langs a").removeClass("current");
 	jQuery(this).addClass("current");
 
+	// Determine selected language, based on classes on the link
 	var re = /cms_tpv_switch_language_code_([\w-]+)/;
 	var matches = re.exec( jQuery(this).attr("class") );
 	var lang_code = matches[1];
+
+	// Add seleted lang to hidden input
 	$wrapper.find("[name=cms_tpv_meta_wpml_language]").val(lang_code);
 
+	// Update post count
+	// Post counts are stored on the links for all | public | trash
+	var $ul_select_view = $wrapper.find(".cms-tpv-subsubsub-select-view");
+	$ul_select_view.find("li.cms_tvp_view_is_status_view a").each(function(i, a_tag) {
+		
+		// check if this link has a data attr with count for the selected lang
+		var $a = jQuery(a_tag);
+		var link_count = $a.data("post-count-" + lang_code);
+		if ("undefined" === typeof(link_count)) return;
+
+		$a.find(".count").text("(" + link_count + ")");
+
+	});
+
+	// Set the view = reload the tree
 	var current_view = cms_tpv_get_current_view(this);
 	cms_tvp_set_view(current_view, this);
 	
@@ -776,20 +792,23 @@ function cms_tpv_get_current_view(elm) {
 
 /**
  * Sets the view; load pages for the current lang + post type + status
+ * @param view all | public | trash
+ * @elm element
  */
 function cms_tvp_set_view(view, elm) {
 
 	var $wrapper = jQuery(elm).closest(".cms_tpv_wrapper");
 
 	var div_actions_for_post_type = cms_tpv_get_page_actions_div(elm);
+
 	$wrapper.append(div_actions_for_post_type);
 	$wrapper.find(".cms_tvp_view_all, .cms_tvp_view_public, .cms_tvp_view_trash").removeClass("current");
 	$wrapper.find(".cms_tpv_container").jstree("destroy").html("");
-
 	$wrapper.find("div.cms_tpv_page_actions").removeClass("cms_tpv_page_actions_visible");
 
 	cms_tpv_bind_clean_node();
 
+	// Mark selected link
 	if (view == "all") {
 		$wrapper.find(".cms_tvp_view_all").addClass("current");
 	} else if (view == "public") {
@@ -800,6 +819,7 @@ function cms_tvp_set_view(view, elm) {
 		
 	}
 	
+	// Reload tree
 	var treeOptionsTmp = jQuery.extend(true, {}, treeOptions);
 	treeOptionsTmp.json_data.ajax.url = ajaxurl + CMS_TPV_AJAXURL + view + "&post_type=" + cms_tpv_get_post_type(elm) + "&lang=" + cms_tpv_get_wpml_selected_lang(elm);
 
