@@ -1,4 +1,171 @@
 
+/*
+
+Some docs so I remember how things work:
+
+Timers:
+
+	cmstpv_global_link_timer
+	set when mouse over link. used to show the actions div.
+
+*/
+
+
+/**
+ * Should have a module for all instead...
+ */
+var cms_tree_page_view = (function ($) {
+	
+	var my = {},
+		privateVariable = 1;
+	 
+	function privateMethod() {
+		// ...
+	}
+	 
+	my.moduleProperty = 1;
+	my.elements = {};
+	
+	my.selectors = {
+		containers: "div.cms_tpv_container",
+		action_div: "div.cms_tpv_page_actions",
+		action_doit: "div.cms_tpv_action_add_doit"
+	};
+
+	my.init = function() {
+		my.log("init cms tree page view");
+		my.setup_elements();
+		my.setup_listeners();
+	};
+
+	// this is wrong, the action div and doit should be for each container, not for all
+	my.setup_elements = function() {
+		for (var elm in my.selectors) {
+			if (my.selectors.hasOwnProperty(elm))
+				my.elements[elm] = $(my.selectors[elm]);
+		}
+	};
+
+	my.setup_listeners = function() {
+		
+		// When something has been written in one of the page titles: show another row
+		// Also: if more than one row are empty at the end, remove all but the last
+		$(document).on("keyup", "ul.cms_tpv_action_add_doit_pages li:last-child input", function(e) {
+
+			var $t = $(this);
+			var $li = $t.closest("li");
+
+			if ($.trim($t.val()) !== "") {
+			
+				var $new_li = $li.clone().hide();
+				$new_li.find("input").val("");
+				$li.after( $new_li );
+				$new_li.slideDown();
+			
+			}
+
+		});
+
+		// Click on cancel-link = hide add-div
+		jQuery(document).on("click", "a.cms_tpv_add_cancel", function(e) {
+
+			e.preventDefault();
+			var actions_div_doit = cms_tpv_get_page_actions_div_doit(this);
+			actions_div_doit.slideUp("fast", function() {
+
+				// Reset status back to draft
+				$("input[name='cms_tpv_add_status'][value='draft']").attr("checked", true);
+
+				// Remove all LIs except the last one
+				$("ul.cms_tpv_action_add_doit_pages").find("li:not(:last)").remove();
+
+			});
+
+		});
+
+		// Click on link to add pages
+		jQuery(document).on("click", "a.cms_tpv_action_add_page_after, a.cms_tpv_action_add_page_inside", function(e) {
+
+			e.preventDefault();
+			var $this = jQuery(this);
+			var post_type = cms_tpv_get_post_type(this);
+			var selected_lang = cms_tpv_get_wpml_selected_lang(this);
+			var actions_div = cms_tpv_get_page_actions_div(this);
+			var actions_div_doit = cms_tpv_get_page_actions_div_doit(this);
+			var post_status = actions_div.data("post_status");
+
+			var add_type = "";
+			if ($this.hasClass("cms_tpv_action_add_page_after")) {
+				add_type = "after";
+			} else if ($this.hasClass("cms_tpv_action_add_page_inside")) {
+				add_type = "inside";
+			}
+
+			// not allowed when status is trash
+			if (post_status === "trash" && add_type === "inside") {
+				jAlert(cmstpv_l10n.Can_not_add_page_after_when_status_is_trash);
+				return;
+			}
+
+			// if status is draft then it's not ok to add sub pages
+			if (post_status === "draft" && add_type === "inside") {
+				jAlert(cmstpv_l10n.Can_not_add_sub_page_when_status_is_draft);
+				return false;
+			}
+
+			// Make the list sortable
+			$("ul.cms_tpv_action_add_doit_pages").sortable({
+				"axis": "y",
+				"items": "> li:not(:last)",
+				"containment": 'parent',
+				"forceHelperSize": true,
+				"forcePlaceholderSize": true,
+				"handle": "span:first",
+				"placeholder": "ui-state-highlight"
+			});
+
+			// Set up correct values for input fields and radio buttons and then show form/section
+			actions_div_doit.find("[name='lang']").val(selected_lang);
+			actions_div_doit.find("[name='cms_tpv_add_type'][value='"+add_type+"']").attr("checked", "checked");
+			actions_div_doit.find("[name='ref_post_id']").val( actions_div.data("post_id") );
+			actions_div_doit.slideDown("fast", function() {
+				actions_div_doit.find("[name='cms_tpv_add_new_pages_names[]']").focus();
+			});
+
+			
+		}); // click add page
+
+		// submit form with new pages
+		jQuery(document).on("submit", "div.cms_tpv_action_add_doit form", function(e) {
+
+			//e.preventDefault();
+
+			var $form = $(this);
+			$form.find("input[type='submit']").val( cmstpv_l10n.Adding ).attr("disabled", true);
+
+		});
+
+	};
+
+	/**
+	 * Log, but only if console.log is available
+	 */
+	my.log = function(what) {
+		if (typeof(window.console) === "object" && typeof(window.console.log) === "function" ) {
+			console.log(what);
+		}
+	};
+	 
+	return my;
+
+}(jQuery));
+
+// Bott it up on domready
+jQuery(function() {
+	cms_tree_page_view.init();
+});
+
+
 // @todo: add prefix to treeOptions, div_actions
 var cms_tpv_tree, treeOptions, div_actions, cms_tpv_current_li_id = null;
 jQuery(function($) {
@@ -8,21 +175,23 @@ jQuery(function($) {
 	div_actions = $("div.cms_tpv_page_actions");
 
 	// try to override css
-	var height = "20", height2 = "18", ins_height = "18";
-	css_string = '' + 
-		'.jstree ul, .jstree li { display:block; margin:0 0 0 0; padding:0 0 0 0; list-style-type:none; } ' + 
-		'.jstree li { display:block; min-height:'+height+'px; line-height:'+height+'px; white-space:nowrap; margin-left:18px; min-width:18px; } ' + 
-		'.jstree-rtl li { margin-left:0; margin-right:18px; } ' + 
-		'.jstree > ul > li { margin-left:0px; } ' + 
-		'.jstree-rtl > ul > li { margin-right:0px; } ' + 
-		'.jstree ins { display:inline-block; text-decoration:none; width:18px; height:'+height+'px; margin:0 0 0 0; padding:0; } ' + 
-		'.jstree a { display:inline-block; line-height:'+height2+'px; height:'+height2+'px; color:black; white-space:nowrap; text-decoration:none; padding:1px 2px; margin:0; } ' + 
-		'.jstree a:focus { outline: none; } ' + 
-		'.jstree a > ins { height:'+ins_height+'px; width:16px; } ' + 
-		'.jstree a > .jstree-icon { margin-right:3px; } ' + 
-		'.jstree-rtl a > .jstree-icon { margin-left:3px; margin-right:0; } ' + 
-		'li.jstree-open > ul { display:block; } ' + 
-		'li.jstree-closed > ul { display:none; } ';
+	var height = "20", height2 = "18", ins_height = "20";
+	css_string = '' +
+		'.jstree ul, .jstree li { display:block; margin:0 0 0 0; padding:0 0 0 0; list-style-type:none; } ' +
+		'.jstree li { display:block; min-height:'+height+'px; line-height:'+height+'px; white-space:nowrap; margin-left:18px; min-width:18px; } ' +
+		'.jstree-rtl li { margin-left:0; margin-right:18px; } ' +
+		'.jstree > ul > li { margin-left:0px; } ' +
+		'.jstree-rtl > ul > li { margin-right:0px; } ' +
+		'.jstree ins { display:inline-block; text-decoration:none; width:18px; height:'+height+'px; margin:0 0 0 0; padding:0; } ' +
+		'.jstree a { display:inline-block; line-height:'+height2+'px; height:'+height2+'px; color:black; white-space:nowrap; text-decoration:none; padding:1px 2px; margin:0; } ' +
+		'.jstree a:focus { outline: none; } ' +
+		'.jstree a > ins { height:'+ins_height+'px; width:16px; } ' +
+		'.jstree a > .jstree-icon { margin-right:3px; } ' +
+		'.jstree-rtl a > .jstree-icon { margin-left:3px; margin-right:0; } ' +
+		'li.jstree-open > ul { display:block; } ' +
+		'li.jstree-closed > ul { display:none; } ' +
+		'#vakata-dragged { background-color: white; };' +
+		'';
 	$.vakata.css.add_sheet({
 		str : css_string,
 		title : "jstree_cms_tpv"
@@ -79,7 +248,7 @@ jQuery(function($) {
 		treeOptionsTmp.json_data.data = cms_tpv_jsondata[post_type]; // get from js
 		
 		var isHierarchical = $(elm).closest(".cms_tpv_wrapper").find("[name=cms_tpv_meta_post_type_hierarchical]").val();
-		if (isHierarchical == 0) {
+		if (isHierarchical === "0") {
 			// no move to children if not hierarchical
 			treeOptionsTmp.types = {
 				"types": {
@@ -97,8 +266,9 @@ jQuery(function($) {
 			}
 		});
 		
-		$elm.bind("loaded.jstree open_node.jstree", cms_tpv_tree_loaded);
-		 //$wrapper.find(".cms_tpv_container").bind("loaded.jstree refresh.jstree open_node.jstree reopen.jstree after_open.jstree load_node.jstree", cms_tpv_tree_loaded);
+		// whole tre loaded
+		$elm.bind("loaded.jstree", cms_tpv_tree_loaded);
+		
 		$elm.jstree(treeOptionsTmp);
 
 	});
@@ -106,37 +276,86 @@ jQuery(function($) {
 }); // end ondomready
 
 
+function cms_tpv_mouseover(e) {
+
+	var $this = jQuery(this);
+	var $li = $this.closest("li");
+	cms_tpv_mouseover_li(e, $li.get(0));
+	return true;
+
+}
+
+
 /**
  * When tree is loaded: start hoverindenting stuff
- * @todo: this is fireded several times, why not only once
  */
 function cms_tpv_tree_loaded(event, data) {
 
-	// console.log("loaded");
+	var $container = jQuery(event.target);
+	var actions_div_doit = cms_tpv_get_page_actions_div_doit(event.target);
 
-	var $target = jQuery(event.target);
-	var $lis = $target.find("li a");
-	var $hoverIntentWrap = $target.find("div.cmstpv-hoverIntent-wrap");
+	// init = clear up some things
+	actions_div_doit.hide();
+	$container.find("li.has-visible-actions").removeClass("has-visible-actions");
+	$container.find("a.hover").removeClass("hover");
+	$container.find("div.cms_tpv_page_actions").removeClass("cms_tpv_page_actions_visible");
+	$container.find("div.cms_tpv_page_actions_visible").removeClass("cms_tpv_page_actions_visible");
 
-	// Bind hoverIntent
-	$hoverIntentWrap.hoverIntent({    
-		over: cms_tpv_mouseover,
-		out: cms_tpv_mouseout,
-		timeout: 500, // default 0, 500 is good
-		sensitivity: 4 // default 7
+	// when mouse enters a/link
+	// start timer and if no other a/link has been moused over since it started it's ok to show this one
+	jQuery($container).on("mouseenter", "a", function(e) {
+
+		// Don't activate if entered on ins-tag. We use that only for drag and drop
+		// if (e.relatedTarget && e.relatedTarget.tagName === "INS") return;
+
+		cms_tree_page_view.log("mouseenter container");
+
+		var global_timer = $container.data("cmstpv_global_link_timer");
+
+		if (global_timer) {
+			// global timer exists, so overwrite it with our new one
+			// stop that timer before setting ours
+			cms_tree_page_view.log("clear global timer");
+			clearTimeout(global_timer);
+		} else {
+			// no timer exists, overwrite with ours
+		}
+
+		// create new timer to show action div, no matter if one exists already
+		// but not if we are creating new pages
+		cms_tree_page_view.log("add timer for mousover on link");
+
+		if ( ! actions_div_doit.is(":visible") ) {
+
+			var timeoutID = setTimeout((function() {
+				cms_tpv_mouseover_li(e);
+			}), 500, e);
+
+			$container.data("cmstpv_global_link_timer", timeoutID);
+
+		} else {
+			//console.log("timer not added because doit visible");
+		}
+
 	});
 
-	function cms_tpv_mouseover(e) {
-		var $this = jQuery(this);
-		var $li = $this.closest("li");
-		cms_tpv_mouseover_li(e, $li.get(0));
-	}
+	/**
+	 * When mouse down we may want to drag and drop,
+	 * so hide the action div and cancel the timer
+	 */
+	jQuery($container).on("mousedown", "a", function(e) {
+		
+		cms_tree_page_view.log("mousedown a");
 
-	function cms_tpv_mouseout(e) {
-		var $this = jQuery(this);
-		var $li = $this.closest("li");
-		cms_tpv_mouseout_li(e, $li.get(0));
-	}
+		var $target = jQuery(e.target);
+		var $container = $target.closest("div.cms_tpv_container");
+		var $wrapper = $container.closest("div.cms_tpv_wrapper");
+
+		$container.find("li.has-visible-actions").removeClass("has-visible-actions");
+		$container.find("a.hover").removeClass("hover");
+		$wrapper.find("div.cms_tpv_page_actions").removeClass("cms_tpv_page_actions_visible");
+
+	});
 
 }
 
@@ -154,89 +373,16 @@ function cms_tpv_get_wpml_selected_lang(elm) {
 function cms_tpv_get_page_actions_div(elm) {
 	return jQuery(elm).closest("div.cms_tpv_wrapper").find("div.cms_tpv_page_actions");
 }
+
+function cms_tpv_get_page_actions_div_doit(elm) {
+	return jQuery(elm).closest("div.cms_tpv_wrapper").find("div.cms_tpv_action_add_doit");
+}
+
+
 function cms_tpv_get_wrapper(elm) {
 	var $wrapper = jQuery(elm).closest("div.cms_tpv_wrapper");
 	return $wrapper;
 }
-
-
-// Click on link to add page after the current page
-jQuery(document).on("click", "a.cms_tpv_action_add_page_after", function(e) {
-
-	var $this = jQuery(this);
-	var post_type = cms_tpv_get_post_type(this);
-	var selected_lang = cms_tpv_get_wpml_selected_lang(this);
-
-	var post_status = $this.closest("li").data("post_status");
-
-	// not allowed when status is trash
-	if (post_status == "trash") {
-		jAlert(cmstpv_l10n.Can_not_add_page_after_when_status_is_trash);
-		return false;
-	}
-
-	jPrompt(cmstpv_l10n.Enter_title_of_new_page, "", "CMS Tree Page View", function(new_page_title) {
-		if (new_page_title) {
-			var pageID = $this.parents("li:first").attr("id");
-			jQuery(".cms_tpv_message").html("<p>"+cmstpv_l10n.Adding_page+"</p>").slideDown("fast");
-			jQuery.post(ajaxurl, {
-				"action": "cms_tpv_add_page",
-				"pageID": pageID,
-				"type": "after",
-				"page_title": new_page_title,
-				"post_type": post_type,
-				"wpml_lang": selected_lang
-			}, function(data, textStatus) {
-				document.location = data;
-			});
-		}
-	});
-
-	return false;
-});
-
-// Click on link to add page insde another page
-jQuery(document).on("click", "a.cms_tpv_action_add_page_inside", function(e) {
-	var $this = jQuery(this);
-	var post_type = cms_tpv_get_post_type(this);
-	var selected_lang = cms_tpv_get_wpml_selected_lang(this);
-	
-	var post_status = $this.closest("li").data("post_status");
-
-	// check page status, because we cant add a page inside a page with status draft or status trash
-	// if we edit the page wordpress will forget the parent
-	//$li.data("jstree").permalink;
-	//var post_status = li.data("jstree").post_status;
-	if (post_status == "draft") {
-		jAlert(cmstpv_l10n.Can_not_add_sub_page_when_status_is_draft);
-		return false;
-	}
-
-	// not allowed when status is trash
-	if (post_status == "trash") {
-		jAlert(cmstpv_l10n.Can_not_add_sub_page_when_status_is_trash);
-		return false;
-	}
-	
-	jPrompt(cmstpv_l10n.Enter_title_of_new_page, "", "CMS Tree Page View", function(new_page_title) {
-		if (new_page_title) {
-			var pageID = $this.parents("li:first").attr("id");
-			jQuery(".cms_tpv_message").html("<p>" + cmstpv_l10n.Adding_page + "</p>").slideDown("fast");
-			jQuery.post(ajaxurl, {
-				"action": "cms_tpv_add_page",
-				"pageID": pageID,
-				"type": "inside",
-				"page_title": new_page_title,
-				"post_type": post_type,
-				"wpml_lang": selected_lang
-			}, function(data, textStatus) {
-				document.location = data;
-			});
-		}
-	});
-	return false;
-});
-
 
 
 // check if tree is beging dragged
@@ -245,31 +391,17 @@ function cms_tpv_is_dragging() {
 	return eDrag.is(":visible");
 }
 
-/*
-jQuery(".jstree li").live("mouseover", function(e) {
-	var $li = jQuery(this);
-	var li_id = $li.attr("id");
-	cms_tpv_mouseover_li(this);
-});
-// ..and hide them again
-jQuery(".jstree li").live("mouseout", function() {
-	//cms_tpv_current_li_id = null;
-	//console.log("out");
-	cms_tpv_mouseout_li(this);
-});
-*/
-
-
-
 // fired when mouse is over li
-function cms_tpv_mouseover_li(e, li) {
+// actually when over a, old name :/
+function cms_tpv_mouseover_li(e) {
 
-	var $li = jQuery(li);
-
-	var div_actions_for_post_type = cms_tpv_get_page_actions_div(li);
+	var $target = jQuery(e.target);
+	var $li = $target.closest("li");
+	var div_actions_for_post_type = cms_tpv_get_page_actions_div($li);
+	var actions_div_doit = cms_tpv_get_page_actions_div_doit($li);
 	var $cms_tpv_container = $li.closest("div.cms_tpv_container");
 
-	if (cms_tpv_is_dragging() == false) {
+	if (cms_tpv_is_dragging() === false) {
 		
 		var is_visible = div_actions_for_post_type.is(":visible");
 		is_visible = false;
@@ -277,6 +409,9 @@ function cms_tpv_mouseover_li(e, li) {
 		if (is_visible) {
 			// do nada
 		} else {
+
+			// Add info to the action div from the li
+			div_actions_for_post_type.data("post_status", $li.data("post_status"));
 
 			// Remove classes on all elements
 			$cms_tpv_container.find("li.has-visible-actions").removeClass("has-visible-actions");
@@ -300,37 +435,42 @@ function cms_tpv_mouseover_li(e, li) {
 			// ..and some extras
 			div_actions_for_post_type.find(".cms_tpv_page_actions_modified_time").text($li.data("modified_time"));
 			div_actions_for_post_type.find(".cms_tpv_page_actions_modified_by").text($li.data("modified_author"));
-			div_actions_for_post_type.find(".cms_tpv_page_actions_page_id").text($li.data("post_id"));		
-			
+			div_actions_for_post_type.find(".cms_tpv_page_actions_page_id").text($li.data("post_id"));
 			div_actions_for_post_type.find(".cms_tpv_page_actions_columns").html( unescape($li.data("columns")) );
 
 			// add post title as headline
 			div_actions_for_post_type.find(".cms_tpv_page_actions_headline").html( $li.data("post_title") );
+
+			// add post id to data
+			div_actions_for_post_type.data("post_id", $li.data("post_id"));
 			
 			// position and show action div
-			// put it inside cmstpv-hoverIntent-wrap so hoverIndent is cool with it
-			var $overIntentWrap = $li.find("div.cmstpv-hoverIntent-wrap:first");
-			//console.log( $overIntentWrap.length );
 			var $a = $li.find("a");
 			var width = $a.outerWidth(true);
-			//$li.append(div_actions_for_post_type);
-			
-			$overIntentWrap.append(div_actions_for_post_type);
-			
 			var new_offset = div_actions_for_post_type.offset();
 			var new_offset_left = e.pageX + 35;
-			// check that new left offset is not to close to the left of the a
-			// i.e. the mouse be x px more than the a for the experience to be optimal IMHO
-			var diff = e.pageX - $a.offset().left;
-			if (diff < 25) new_offset_left = new_offset_left + 25;
-
+		
+			new_offset_left = $a.offset().left + $a.width() + 20;
 			new_offset.left = new_offset_left;
 			new_offset.top = $a.offset().top - 30;
 			div_actions_for_post_type.offset(new_offset);
+
+			// check if action div bottom is visible in browser window, if not move it up until it is
+			var pos_diff = (div_actions_for_post_type.offset().top + div_actions_for_post_type.height()) - (jQuery(window).height() + jQuery(window).scrollTop());
+			if (pos_diff > 0)  {
+				
+				// set action div to begin at bottom of link instead
+				new_offset.top = $a.offset().top - div_actions_for_post_type.height() + 15; // <- ska bli botten på vår div
+				div_actions_for_post_type.offset( new_offset );
+				div_actions_for_post_type.addClass("cms_tpv_page_actions_visible_from_bottom");
+				
+			} else {
+				div_actions_for_post_type.removeClass("cms_tpv_page_actions_visible_from_bottom");
+			}
 			
 			// check if user is allowed to edit page
 			var $cms_tpv_action_add_and_edit_page = div_actions_for_post_type.find(".cms_tpv_action_add_and_edit_page");
-			if ($li.data("user_can_edit_page") == 0) {
+			if ($li.data("user_can_edit_page") === "0") {
 				// nooope
 				$edit.hide();
 				$cms_tpv_action_add_and_edit_page.hide();
@@ -346,75 +486,76 @@ function cms_tpv_mouseover_li(e, li) {
 
 }
 
-// When mouse leaves the whole cms tree page view-area/div
+/**
+ * When mouse leaves the whole cms tree page view-area/div
+ * hide actions div after moving mouse out of a page and not moving it on again for...a while
+ */
 jQuery(document).on("mouseleave", "div.cms_tpv_container", function(e) {
-	// hide actions div after moving mouse out of a page and not moving it on again for...a while
+
+	cms_tree_page_view.log("mouseleave container");
 	
-	//var div_actions_for_post_type = cms_tpv_get_page_actions_div(li);
-	//var $cms_tpv_container = $li.closest("div.cms_tpv_container");
-	// console.log("mouse outside container");
-	var $container = jQuery(this);
-	jQuery.data(this, "cmstpv_do_hide_after_timeout", true);
+	var $container = jQuery(e.target).closest("div.cms_tpv_container");
+	var $wrapper = $container.closest("div.cms_tpv_wrapper");
 	var t = this;
+	
+	// Reset global timer
+	var global_timer = $container.data("cmstpv_global_link_timer");
+	if (global_timer) {
+		cms_tree_page_view.log("clear global timer");
+		clearTimeout(global_timer);
+	}
 
-	setTimeout(function() {
-		//(function() {
-			
-			// check if container has data value that still tells us to hide
-			// this value is reseted when we enter the div again
-			//$cms_tpv_container
-			//console.log("timeout passed; hide?");
-			//console.log( jQuery.data(t, "cmstpv_do_hide_after_timeout") );
-			if (jQuery.data(t, "cmstpv_do_hide_after_timeout")) {
-				$container.find("li.has-visible-actions").removeClass("has-visible-actions");
-				$container.find("a.hover").removeClass("hover");
-				$container.find("div.cms_tpv_page_actions").removeClass("cms_tpv_page_actions_visible");
-			}
+	// Don't hide if in add-pages-mode
+	var actions_div_doit = cms_tpv_get_page_actions_div_doit(this);
+	if ( actions_div_doit.is(":visible") )
+		return;
 
-		//})();
-	}, 1000);
+	// Maybe hide popup after a short while
+	var hideTimer = setTimeout(function() {
+		
+		cms_tree_page_view.log("maybe hide popup because outside container");
+
+		// But don't hide if we are inside the popup
+		var $relatedTarget = jQuery(e.relatedTarget);
+		if ($relatedTarget.hasClass("cms_tpv_page_actions")) {
+			// we are over the actions div, so don't hide
+			cms_tree_page_view.log("cancel hide beacuse over actions div");
+		} else {
+			// somewhere else, do hide
+			cms_tree_page_view.log("do hide");
+			$container.find("li.has-visible-actions").removeClass("has-visible-actions");
+			$container.find("a.hover").removeClass("hover");
+			$wrapper.find("div.cms_tpv_page_actions").removeClass("cms_tpv_page_actions_visible");
+		}
+
+	}, 500);
+
+	$container.data("cmstpv_global_link_timer", hideTimer);
 
 });
+
+// When mouse enters actions div then cancel possibly global hide timer
+// If moved outside container and then back, cancel possibly global timer
+jQuery(document).on("mouseenter", "div.cms_tpv_page_actions", function(e) {
+	
+	var $this = jQuery(this);
+	var $wrapper = $this.closest("div.cms_tpv_wrapper");
+	var $container = $wrapper.find("div.cms_tpv_container");
+	var timer = $container.data("cmstpv_global_link_timer");
+	
+	clearTimeout(timer);
+
+});
+
 
 // When mouse enter the whole cms tree page view-area/div
 jQuery(document).on("mouseenter", "div.cms_tpv_container", function(e) {
 
-	// console.log("mouse inside container, reset hide data");
 	var $container = jQuery(this);
 	jQuery.data(this, "cmstpv_do_hide_after_timeout", false);
 
 });
 
-
-// fired when mouse leaves li
-function cms_tpv_mouseout_li(e, li) {
-
-	var $li = jQuery(li);
-	var $cms_tpv_container = $li.closest("div.cms_tpv_container");
-
-	/*
-	var div_actions_for_post_type = cms_tpv_get_page_actions_div(li);
-	var $cms_tpv_container = $li.closest("div.cms_tpv_container");
-	var is_visible = div_actions_for_post_type.is(":visible");
-	*/
-
-	// Remove classes if we are not viewing any
-	// This function can get called also when a new li has been hoverIndent:ed
-	/*
-	$li.find("a:first").removeClass("hover");
-	$li.removeClass("has-visible-actions");
-	if (!is_visible) {
-		$cms_tpv_container.removeClass("has-visible-actions");
-	}
-	*/
-	//div_actions.hide();
-}
-
-
-// hide action links on drag
-jQuery.jstree.drag_start = function() {
-	jQuery(".cms_tpv_action_view, .cms_tpv_action_edit, .cms_tpv_action_add_page, .cms_tpv_action_add_page_after, .cms_tpv_action_add_page_inside").hide();
-}
 
 /**
  * add childcount and other things to each li
@@ -452,22 +593,24 @@ function cms_tpv_bind_clean_node() {
 		data.r - the drop target
 		*/
 		
+		var node_id,
+			ref_node_id;
 		if (nodePosition == "before") {
-			var node_id = jQuery( nodeBeingMoved ).attr( "id" );
+			node_id = jQuery( nodeBeingMoved ).attr( "id" );
 			ref_node_id = jQuery( nodeRef ).attr( "id" );
 		} else if (nodePosition == "after") {
-			var node_id = jQuery( nodeBeingMoved ).attr( "id" );
+			node_id = jQuery( nodeBeingMoved ).attr( "id" );
 			ref_node_id = jQuery( nodeR ).attr( "id" );
 		} else if (nodePosition == "inside") {
-			var node_id = jQuery( nodeBeingMoved ).attr( "id" );
+			node_id = jQuery( nodeBeingMoved ).attr( "id" );
 			ref_node_id = jQuery( nodeR ).attr( "id" );
 		}
 		
 		// Update parent or menu order
 		jQuery.post(ajaxurl, {
-				action: "cms_tpv_move_page", 
-				"node_id": node_id, 
-				"ref_node_id": ref_node_id, 
+				action: "cms_tpv_move_page",
+				"node_id": node_id,
+				"ref_node_id": ref_node_id,
 				"type": nodePosition,
 				"icl_post_language": selected_lang
 			}, function(data, textStatus) {
@@ -516,15 +659,8 @@ function cms_tpv_bind_clean_node() {
 				}
 
 				// To make hoverindent work we must wrap something around the a bla bla bla
-
-				//li.find()
-				var div_wrap = jQuery("<div class='cmstpv-hoverIntent-wrap' />");
-				div_wrap.css({
-					"display": "inline-block",
-					"xwidth": "100%"
-				});
-				aFirst.wrap(div_wrap);
-
+				//var div_wrap = jQuery("<div class='cmstpv-hoverIntent-wrap' />");
+				//aFirst.wrap(div_wrap);
 
 			});
 		}
@@ -542,7 +678,7 @@ jQuery(document).on("submit", "form.cms_tree_view_search_form", function(e) {
 	if (s) {
 		$wrapper.find(".cms_tree_view_search_form_no_hits").fadeOut("fast");
 		$wrapper.find(".cms_tree_view_search_form_working").fadeIn("fast");
-		$wrapper.find(".cms_tree_view_search_form_reset")
+		$wrapper.find(".cms_tree_view_search_form_reset");
 		$wrapper.find(".cms_tpv_container").jstree("search", s);
 		$wrapper.find(".cms_tree_view_search_form_reset").fadeIn("fast");
 	} else {
@@ -596,23 +732,49 @@ jQuery(document).on("click", "a.cms_tvp_view_trash", function() {
 });
 
 
-// change lang
+// click on link to change WPML-language
 jQuery(document).on("click", "a.cms_tvp_switch_lang", function(e) {
+	
 	$wrapper = cms_tpv_get_wrapper(this);
+
+	// Mark clicked link as selected
 	$wrapper.find("ul.cms_tvp_switch_langs a").removeClass("current");
 	jQuery(this).addClass("current");
 
+	// Determine selected language, based on classes on the link
 	var re = /cms_tpv_switch_language_code_([\w-]+)/;
 	var matches = re.exec( jQuery(this).attr("class") );
 	var lang_code = matches[1];
+
+	// Add seleted lang to hidden input
 	$wrapper.find("[name=cms_tpv_meta_wpml_language]").val(lang_code);
 
+	// Update post count
+	// Post counts are stored on the links for all | public | trash
+	var $ul_select_view = $wrapper.find(".cms-tpv-subsubsub-select-view");
+	$ul_select_view.find("li.cms_tvp_view_is_status_view a").each(function(i, a_tag) {
+		
+		// check if this link has a data attr with count for the selected lang
+		var $a = jQuery(a_tag);
+		var link_count = $a.data("post-count-" + lang_code);
+		if ("undefined" === typeof(link_count)) return;
+
+		$a.find(".count").text("(" + link_count + ")");
+
+	});
+
+	// Set the view = reload the tree
 	var current_view = cms_tpv_get_current_view(this);
 	cms_tvp_set_view(current_view, this);
 	
 	return false;
 
 });
+
+function cms_tpv_hide_action_div() {
+	
+}
+
 
 function cms_tpv_get_current_view(elm) {
 	
@@ -628,17 +790,25 @@ function cms_tpv_get_current_view(elm) {
 
 }
 
+/**
+ * Sets the view; load pages for the current lang + post type + status
+ * @param view all | public | trash
+ * @elm element
+ */
 function cms_tvp_set_view(view, elm) {
 
 	var $wrapper = jQuery(elm).closest(".cms_tpv_wrapper");
 
 	var div_actions_for_post_type = cms_tpv_get_page_actions_div(elm);
-	$wrapper.append(div_actions_for_post_type);
 
+	$wrapper.append(div_actions_for_post_type);
 	$wrapper.find(".cms_tvp_view_all, .cms_tvp_view_public, .cms_tvp_view_trash").removeClass("current");
 	$wrapper.find(".cms_tpv_container").jstree("destroy").html("");
+	$wrapper.find("div.cms_tpv_page_actions").removeClass("cms_tpv_page_actions_visible");
+
 	cms_tpv_bind_clean_node();
 
+	// Mark selected link
 	if (view == "all") {
 		$wrapper.find(".cms_tvp_view_all").addClass("current");
 	} else if (view == "public") {
@@ -648,24 +818,12 @@ function cms_tvp_set_view(view, elm) {
 	} else {
 		
 	}
-
-	// Hide actions if open
-	var $cms_tpv_container = $wrapper.find("div.cms_tpv_container");
-	$cms_tpv_container.find("li.has-visible-actions").removeClass("has-visible-actions");
-	$cms_tpv_container.find("a.hover").removeClass("hover");
-	$cms_tpv_container.find("div.cms_tpv_page_actions").removeClass("cms_tpv_page_actions_visible");
-	jQuery("div.cms_tpv_page_actions_visible").removeClass("cms_tpv_page_actions_visible");
 	
+	// Reload tree
 	var treeOptionsTmp = jQuery.extend(true, {}, treeOptions);
 	treeOptionsTmp.json_data.ajax.url = ajaxurl + CMS_TPV_AJAXURL + view + "&post_type=" + cms_tpv_get_post_type(elm) + "&lang=" + cms_tpv_get_wpml_selected_lang(elm);
 
-	$wrapper.find(".cms_tpv_container").bind("loaded.jstree", cms_tpv_tree_loaded);
+	$wrapper.find(".cms_tpv_container").bind("loaded.jstree open_node.jstree", cms_tpv_tree_loaded);
 	$wrapper.find(".cms_tpv_container").jstree(treeOptionsTmp);
-
-	/*
-	__calback loaded jquery.jstree.js:238
-	__calback reopen jquery.jstree.js:238
-	__calback reload_nodes
-	*/
 
 }

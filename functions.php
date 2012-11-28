@@ -1,5 +1,176 @@
 <?php
 
+/**
+ * Use the ajax action-thingie to catch our form with new pages
+ * Add pages and then redirect to...?
+ */
+function cms_tpv_add_pages() {
+
+	#sf_d($_POST);exit;
+	/*
+	Array
+	(
+	    [action] => cms_tpv_add_pages
+	    [cms_tpv_add_new_pages_names] => Array
+	        (
+	            [0] => xxxxx
+	            [1] => yyyy
+	            [2] => 
+	        )
+
+	    [cms_tpv_add_type] => inside
+	    [cms_tpv_add_status] => draft
+	    [lang] => de
+	)
+	*/
+
+	$post_position 	= $_POST["cms_tpv_add_type"];
+	$post_status 	= $_POST["cms_tpv_add_status"];
+	$post_names 	= (array) $_POST["cms_tpv_add_new_pages_names"];
+	$ref_post_id	= (int) $_POST["ref_post_id"];
+	$lang 			= $_POST["lang"];
+
+	// If lang variable is set, then set some more wpml-related post/get-variables
+	if ($lang) {
+		// post seems to fix creating new posts in selcted lang
+		$_POST["icl_post_language"] = $lang;
+		// $_GET["lang"] = $lang;
+	}
+
+	// make sure the status is publish and nothing else (yes, perhaps I named it bad elsewhere)
+	if ("published" === $post_status) $post_status = "publish";
+
+	// remove possibly empty posts
+	$arr_post_names = array();
+	foreach ($post_names as $one_post_name) {
+		if ( trim($one_post_name) ) {
+			$arr_post_names[] = $one_post_name;
+		}
+	}
+
+	$arr_post_names_count = sizeof($arr_post_names);
+	
+	// check that there are pages left
+	if (empty($arr_post_names)) die("Error: no pages to add.");
+
+	$ref_post = get_post($ref_post_id);
+	if (NULL === $ref_post) die("Error: could not load reference post.");
+	
+	// Make room for our new pages
+	// Get all pages at a level level and loop until our reference page
+	// and then all pages after that one will get it's menu_order 
+	// increased by the same number as the number of new posts we're gonna add
+	
+	$post_parent = 0;
+	if ("after" === $post_position) {
+		$post_parent = $ref_post->post_parent;
+	} elseif ("inside" === $post_position) {
+		$post_parent = $ref_post->ID;
+	}
+
+
+	/*
+	perhaps for wpml:
+	suppress_filters=0
+
+	*/
+
+	$args = array(
+		"post_status" => "any",
+		"post_type" => $ref_post->post_type,
+		"numberposts" => -1,
+		"offset" => 0,
+		"orderby" => 'menu_order',
+		'order' => 'asc',
+		'post_parent' => $post_parent,
+		"suppress_filters" => FALSE
+	);
+	//if ($lang) $args["lang"] = $lang;
+	$posts = get_posts($args);
+
+	#sf_d($_GET["lang"]);sf_d($args);sf_d($posts);exit;
+
+	// If posts exist at this level, make room for our new pages by increasing the menu order
+	if (sizeof($posts) > 0)  {
+
+		if ("after" === $post_position) {
+		
+			$has_passed_ref_post = FALSE;
+			foreach ($posts as $one_post) {
+				
+				if ($has_passed_ref_post) {
+					
+					$post_update = array(
+						"ID" => $one_post->ID,
+						"menu_order" => $one_post->menu_order + $arr_post_names_count
+					);
+					$return_id = wp_update_post($post_update);
+					if (0 ===$return_id) die("Error: could not update post with id " . $post_update->ID);
+
+				}
+
+				if ( ! $has_passed_ref_post && $ref_post->ID === $one_post->ID) {
+					$has_passed_ref_post = TRUE;
+				}			
+
+			}
+			
+			$new_menu_order = $ref_post->menu_order;
+
+		}  elseif ("inside" === $post_position) {
+
+			// in inside, place at beginning
+			// so just get first post and use that menu order as base
+			$new_menu_order = $posts[0]->menu_order - $arr_post_names_count;
+			
+		}
+
+
+	} else {
+
+		// no posts, start at 0
+		$new_menu_order = 0;
+
+	}
+
+	$post_parent_id = NULL;
+	if ("after" === $post_position) {
+		$post_parent_id = $ref_post->post_parent;
+	} elseif ("inside" === $post_position) {
+		$post_parent_id = $ref_post->ID;
+	}
+
+	// Done maybe updating menu orders, add the new pages
+	$arr_added_pages_ids = array();
+	foreach ($arr_post_names as $one_new_post_name) {
+
+		$new_menu_order++;
+		$newpost_args = array(
+			"menu_order" => $new_menu_order,
+			"post_parent" => $post_parent_id,
+			"post_status" => $post_status,
+			"post_title" => $one_new_post_name,
+			"post_type" => $ref_post->post_type
+		);
+		$new_post_id = wp_insert_post($newpost_args);
+
+		if (0 === $new_post_id) {
+			die("Error: could not add post");
+		}
+
+		$arr_added_pages_ids[] = $new_post_id;
+
+
+	}
+
+	// Done. Redirect to the first page created.
+	$first_post_edit_link = get_edit_post_link($arr_added_pages_ids[0], "");
+	wp_redirect($first_post_edit_link);
+
+	exit;
+
+}
+
 // for debug, remember to comment out (yes.. i *know* i will forget this later on...)
 // require("FirePHPCore/FirePHP.class.php");
 // $firephp = FirePHP::getInstance(true);
@@ -73,10 +244,12 @@ function cms_admin_enqueue_scripts() {
 
 	if (cms_tpv_is_one_of_our_pages()) {
 
-		wp_enqueue_script( "jquery-cookie", CMS_TPV_URL . "scripts/jquery.biscuit.js", array("jquery")); // renamed from cookie to fix problems with mod_security
+		// renamed from cookie to fix problems with mod_security
+		wp_enqueue_script( "jquery-cookie", CMS_TPV_URL . "scripts/jquery.biscuit.js", array("jquery"));
+		wp_enqueue_script( "jquery-ui-sortable");
 		wp_enqueue_script( "jquery-jstree", CMS_TPV_URL . "scripts/jquery.jstree.js", false, CMS_TPV_VERSION);
 		wp_enqueue_script( "jquery-alerts", CMS_TPV_URL . "scripts/jquery.alerts.js", false, CMS_TPV_VERSION);
-		wp_enqueue_script( "hoverIntent");
+		// wp_enqueue_script( "hoverIntent");
 		wp_enqueue_script( "cms_tree_page_view", CMS_TPV_URL . "scripts/cms_tree_page_view.js", false, CMS_TPV_VERSION);	
 
 		wp_enqueue_style( "cms_tpv_styles", CMS_TPV_URL . "styles/styles.css", false, CMS_TPV_VERSION );
@@ -111,6 +284,7 @@ function cms_admin_enqueue_scripts() {
 			"Status_trash_ucase" => ucfirst( __("trash", 'cms-tree-page-view') ),
 			"Password_protected_page" => __("Password protected page", 'cms-tree-page-view'),
 			"Adding_page" => __("Adding page...", 'cms-tree-page-view'),
+			"Adding" => __("Adding ...", 'cms-tree-page-view'),
 		);
 		wp_localize_script( "cms_tree_page_view", 'cmstpv_l10n', $oLocale);
 
@@ -126,7 +300,27 @@ function cms_tpv_admin_init() {
 
 	load_plugin_textdomain('cms-tree-page-view', WP_CONTENT_DIR . "/plugins/languages", "/cms-tree-page-view/languages");
 
+	// add row to plugin page
+	add_filter( 'plugin_row_meta', 'cms_tpv_set_plugin_row_meta', 10, 2 );
+
 }
+
+/**
+ * Add settings link to plugin page
+ * Hopefully this helps some people to find the settings page quicker
+ */
+function cms_tpv_set_plugin_row_meta($links, $file) {
+
+	if ($file === "cms-tree-page-view/index.php") {
+		return array_merge(
+			$links,
+			array( sprintf( '<a href="options-general.php?page=%s">%s</a>', "cms-tpv-options", __('Settings') ) )
+		);
+	}
+	return $links;
+
+}
+
 
 // save settings
 function cms_tpv_save_settings() {
@@ -206,7 +400,9 @@ function cms_tpv_options() {
 			<?php
 			$options = cms_tpv_get_options();
 
-			$post_types = get_post_types(array(), "objects");
+			$post_types = get_post_types(array(
+				"show_ui" => TRUE
+			), "objects");
 			$arr_page_options = array();
 			foreach ($post_types as $one_post_type) {
 				$name = $one_post_type->name;
@@ -218,22 +414,20 @@ function cms_tpv_options() {
 					// continue;
 				}
 
-				if ($one_post_type->show_ui) {
+				$arr_page_options[] = "post-type-dashboard-$name";
+				$arr_page_options[] = "post-type-menu-$name";
+				echo "<p>";
+				echo "<strong>".$one_post_type->label."</strong>";
+				
+				$checked = (in_array($name, $options["dashboard"])) ? " checked='checked' " : "";
+				echo "<br />";
+				echo "<input $checked type='checkbox' name='post-type-dashboard[]' value='$name' id='post-type-dashboard-$name' /> <label for='post-type-dashboard-$name'>" . __("On dashboard", 'cms-tree-page-view') . "</label>";
+				
+				$checked = (in_array($name, $options["menu"])) ? " checked='checked' " : "";
+				echo "<br />";
+				echo "<input $checked type='checkbox' name='post-type-menu[]' value='$name' id='post-type-menu-$name' /> <label for='post-type-menu-$name'>" . __("In menu", 'cms-tree-page-view') . "</label>";
+				echo "</p>";
 
-					$arr_page_options[] = "post-type-dashboard-$name";
-					$arr_page_options[] = "post-type-menu-$name";
-					echo "<p>";
-					echo "<strong>".$one_post_type->label."</strong>";
-					
-					$checked = (in_array($name, $options["dashboard"])) ? " checked='checked' " : "";
-					echo "<br />";
-					echo "<input $checked type='checkbox' name='post-type-dashboard[]' value='$name' id='post-type-dashboard-$name' /> <label for='post-type-dashboard-$name'>" . __("On dashboard", 'cms-tree-page-view') . "</label>";
-					
-					$checked = (in_array($name, $options["menu"])) ? " checked='checked' " : "";
-					echo "<br />";
-					echo "<input $checked type='checkbox' name='post-type-menu[]' value='$name' id='post-type-menu-$name' /> <label for='post-type-menu-$name'>" . __("In menu", 'cms-tree-page-view') . "</label>";
-					echo "</p>";
-				}
 			}
 
 			?>
@@ -289,10 +483,54 @@ function cms_tpv_is_post_type_hierarchical($post_type_object) {
 	return $is_hierarchical;
 }
 
+
+function cms_tpv_get_wpml_post_counts($post_type) {
+
+	global $wpdb;
+
+	$arr_statuses = array("publish", "draft", "trash");
+	$arr_counts = array();
+
+	foreach ($arr_statuses as $post_status) {
+
+		$extra_cond = "";
+		if ($post_status){
+			$extra_cond .= " AND post_status = '" . $post_status . "'";
+		}
+		if ($post_status != 'trash'){
+			$extra_cond .= " AND post_status <> 'trash'";
+		}
+		$extra_cond .= " AND post_status <> 'auto-draft'";
+		$sql = "
+			SELECT language_code, COUNT(p.ID) AS c FROM {$wpdb->prefix}icl_translations t
+			JOIN {$wpdb->posts} p ON t.element_id=p.ID
+			JOIN {$wpdb->prefix}icl_languages l ON t.language_code=l.code AND l.active = 1
+			WHERE p.post_type='{$post_type}' AND t.element_type='post_{$post_type}' {$extra_cond}
+			GROUP BY language_code
+		";
+		$res = $wpdb->get_results($sql);
+
+		$langs['all'] = 0;
+		foreach($res as $r) {
+			$langs[$r->language_code] = $r->c;
+			$langs['all'] += $r->c;
+		}
+
+		$arr_counts[$post_status] = $langs;
+
+	}
+
+	return $arr_counts;
+
+}
+
+
 /**
  * Print tree stuff that is common for both dashboard and page
  */
 function cms_tpv_print_common_tree_stuff($post_type = "") {
+
+	global $sitepress, $cms_tpv_view, $wpdb;
 
 	if (!$post_type) {
 		$post_type = cms_tpv_get_selected_post_type();
@@ -303,13 +541,50 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 
 	$pages = cms_tpv_get_pages($get_pages_args);
 
+	// check if wpml is active and if this post type is one of its enabled ones
 	$wpml_current_lang = "";
-	if (defined("ICL_SITEPRESS_VERSION") && $post_type == "page") {
-		global $sitepress;
-		$wpml_current_lang = $sitepress->get_current_language();
+	$wmpl_active_for_post = FALSE;
+	if (defined("ICL_SITEPRESS_VERSION")) {
+
+		$wpml_post_types = $sitepress->get_translatable_documents();
+		if (array_key_exists($post_type, $wpml_post_types)) {
+			$wmpl_active_for_post = TRUE;
+			$wpml_current_lang = $sitepress->get_current_language();
+		}
+	
 	}
 
-	global $cms_tpv_view;
+	$status_data_attributes = array("all" => "", "publish" => "", "trash" => "");
+
+	// Calculate post counts
+	if ($wpml_current_lang) {
+
+		// Count code for WPML, mostly taken/inspired from  WPML Multilingual CMS, sitepress.class.php
+		$langs = array();
+		
+		$wpml_post_counts = cms_tpv_get_wpml_post_counts($post_type);
+		
+		$post_count_all = @$wpml_post_counts["publish"][$wpml_current_lang] + @$wpml_post_counts["draft"][$wpml_current_lang];
+		$post_count_publish	= @$wpml_post_counts["publish"][$wpml_current_lang];
+		$post_count_trash	= @$wpml_post_counts["trash"][$wpml_current_lang];
+	
+		foreach ($wpml_post_counts["publish"] as $one_wpml_lang => $one_wpml_lang_count) {
+			if ("all" === $one_wpml_lang) continue;
+			$lang_post_count_all 		= $wpml_post_counts["publish"][$one_wpml_lang] + $wpml_post_counts["draft"][$one_wpml_lang];
+			$lang_post_count_publish	= $wpml_post_counts["publish"][$one_wpml_lang];
+			$lang_post_count_trash		= $wpml_post_counts["trash"][$one_wpml_lang];
+			$status_data_attributes["all"] 		.= " data-post-count-{$one_wpml_lang}='{$lang_post_count_all}' ";
+			$status_data_attributes["publish"] 	.= " data-post-count-{$one_wpml_lang}='{$lang_post_count_publish}' ";
+			$status_data_attributes["trash"] 	.= " data-post-count-{$one_wpml_lang}='{$lang_post_count_trash}' ";
+		}
+
+	} else {
+		$post_count = wp_count_posts($post_type);
+		$post_count_all = $post_count->publish + $post_count->future + $post_count->draft + $post_count->pending + $post_count->private;
+		$post_count_publish = $post_count->publish;
+		$post_count_trash = $post_count->trash;
+	}
+
 	// output js for the root/top level
 	// function cms_tpv_print_childs($pageID, $view = "all", $arrOpenChilds = null, $post_type) {
 	// @todo: make into function since used at other places
@@ -324,6 +599,7 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 	ob_start();
 	cms_tpv_print_childs(0, $cms_tpv_view, $jstree_open, $post_type);
 	$json_data = ob_get_clean();
+	if (! $json_data) $json_data = '{}';
 	?>
 	<script type="text/javascript">
 		cms_tpv_jsondata.<?php echo $post_type ?> = <?php echo $json_data ?>;
@@ -335,9 +611,9 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 		<input type="hidden" name="cms_tpv_meta_wpml_language" value="<?php echo $wpml_current_lang ?>" />
 		<?php
 
-		// check if WPML is activated
-		// if: show a language-menu
-		if (defined("ICL_SITEPRESS_VERSION") && $post_type == "page") {
+		// check if WPML is activated and show a language-menu
+		if ($wmpl_active_for_post) {
+
 			$wpml_langs = icl_get_languages();
 			$wpml_active_lang = null;
 			if (sizeof($wpml_langs)>=1) {
@@ -350,38 +626,53 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 						$wpml_active_lang = $one_lang;
 						$selected = "current";
 					}
-					$lang_out .= "<li><a class='cms_tvp_switch_lang $selected cms_tpv_switch_language_code_{$one_lang["language_code"]}' href='#'>$one_lang_details[display_name]</a> | </li>";
+
+					$lang_count = @$wpml_post_counts["publish"][$one_lang["language_code"]] + @$wpml_post_counts["draft"][$one_lang["language_code"]];
+
+					$lang_out .= "
+						<li>
+							<a class='cms_tvp_switch_lang $selected cms_tpv_switch_language_code_{$one_lang["language_code"]}' href='#'>
+								$one_lang_details[display_name]
+								<span class='count'>(" . $lang_count . ")</span>
+							</a> | </li>";
 				}
 				$lang_out = preg_replace('/ \| <\/li>$/', "</li>", $lang_out);
 				$lang_out .= "</ul>";
 				echo $lang_out;
 			}
+
 		}
-		/*
-		Array
-		(
-		    [en] => Array
-		        (
-		            [id] => 1
-		            [active] => 1
-		            [native_name] => English
-		            [language_code] => en
-		            [translated_name] => English
-		            [url] => http://localhost/wordpress3
-		            [country_flag_url] => http://localhost/wordpress3/wp-content/plugins/sitepress-multilingual-cms/res/flags/en.png
-		        )
-		*/
-	
+
 		if (empty($pages)) {
+		
 			echo '<div class="updated fade below-h2"><p>' . __("No posts found.", 'cms-tree-page-view') . '</p></div>';
-		} else {
+		
+		}
+
+		if (true) {
+
 			// start the party!
+
 			?>
-	
-			<ul class="cms-tpv-subsubsub">
-				<li><a class="cms_tvp_view_all <?php echo ($cms_tpv_view=="all") ? "current" : "" ?>" href="#"><?php _e("All", 'cms-tree-page-view') ?></a> |</li>
-				<li><a class="cms_tvp_view_public <?php echo ($cms_tpv_view=="public") ? "current" : "" ?>" href="#"><?php _e("Public", 'cms-tree-page-view') ?></a> |</li>
-				<li><a class="cms_tvp_view_trash <?php echo ($cms_tpv_view=="trash") ? "current" : "" ?>" href="#"><?php _e("Trash", 'cms-tree-page-view') ?></a></li>
+			<ul class="cms-tpv-subsubsub cms-tpv-subsubsub-select-view">
+				<li class="cms_tvp_view_is_status_view">
+					<a class="cms_tvp_view_all  <?php echo ($cms_tpv_view=="all") ? "current" : "" ?>" href="#" <?php echo $status_data_attributes["all"] ?>>
+						<?php _e("All", 'cms-tree-page-view') ?>
+						<span class="count">(<?php echo $post_count_all ?>)</span>
+					</a> |
+				</li>
+				<li class="cms_tvp_view_is_status_view">
+					<a class="cms_tvp_view_public <?php echo ($cms_tpv_view=="public") ? "current" : "" ?>" href="#" <?php echo $status_data_attributes["publish"] ?>>
+						<?php _e("Public", 'cms-tree-page-view') ?>
+						<span class="count">(<?php echo $post_count_publish ?>)</span>
+					</a> |
+				</li>
+				<li class="cms_tvp_view_is_status_view">
+					<a class="cms_tvp_view_trash <?php echo ($cms_tpv_view=="trash") ? "current" : "" ?>" href="#" <?php echo $status_data_attributes["trash"] ?>>
+						<?php _e("Trash", 'cms-tree-page-view') ?>
+						<span class="count">(<?php echo $post_count_trash ?>)</span>
+					</a>
+				</li>
 	
 				<?php
 				if (cms_tpv_is_post_type_hierarchical($post_type_object)) {
@@ -401,6 +692,7 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 						<span class="cms_tree_view_search_form_no_hits"><?php _e("Nothing found.", 'cms-tree-page-view') ?></span>
 					</form>
 				</li>
+
 			</ul>
 				
 			<div class="cms_tpv_working">
@@ -427,9 +719,14 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 					<a href="#" title='<?php _e("Edit page", "cms-tree-page-view")?>' class='cms_tpv_action_edit'><?php _e("Edit", "cms-tree-page-view")?></a>
 					<a href="#" title='<?php _e("View page", "cms-tree-page-view")?>' class='cms_tpv_action_view'><?php _e("View", "cms-tree-page-view")?></a>
 				</p>
+
+				<!-- links to add page -->
 				<p class="cms_tpv_action_add_and_edit_page">
+
 					<span class='cms_tpv_action_add_page'><?php echo $post_type_object->labels->add_new_item ?></span>
+					
 					<a href="#" title='<?php _e("Add new page after", "cms-tree-page-view")?>' class='cms_tpv_action_add_page_after'><?php _e("After", "cms-tree-page-view")?></a>
+					
 					<?php
 					// if post type is hierarchical we can add pages inside
 					if (cms_tpv_is_post_type_hierarchical($post_type_object)) {
@@ -438,7 +735,55 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 					// if post status = draft then we can not add pages inside because wordpress currently can not keep its parent if we edit the page
 					?>
 					<!-- <span class="cms_tpv_action_add_page_inside_disallowed"><?php _e("Can not create page inside of a page with draft status", "cms-tree-page-view")?></span> -->
+
 				</p>
+
+				<div class="cms_tpv_action_add_doit">
+					
+					<form method="post" action="<?php echo admin_url( 'admin-ajax.php', 'relative' ); ?>">
+
+						<input type="hidden" name="action" value="cms_tpv_add_pages">
+						<input type="hidden" name="ref_post_id" value="">
+						
+						<!-- lang for wpml -->
+						<input type="hidden" name="lang" value="">
+
+						<!-- <fieldset> -->
+
+							<h4><?php _e("Add page(s)", "cms-tree-page-view") ?></h4>
+
+							<div>
+								<!-- Pages<br> -->
+								<ul class="cms_tpv_action_add_doit_pages">
+									<li><span></span><input placeholder="<?php _e("Enter title here") ?>" type="text" name="cms_tpv_add_new_pages_names[]"></li>
+								</ul>
+							</div>
+
+							<div>
+								Position<br>
+								<label><input type="radio" name="cms_tpv_add_type" value="after"> <?php _e("After", "cms-tree-page-view") ?></label>
+								<label><input type="radio" name="cms_tpv_add_type" value="inside"> <?php _e("Inside", "cms-tree-page-view") ?></label>
+							</div>
+
+
+							<div>
+								Status<br>
+								<label><input type="radio" name="cms_tpv_add_status" value="draft" checked> <?php _e("Draft", "cms-tree-page-view") ?></label>
+								<label><input type="radio" name="cms_tpv_add_status" value="published"> <?php _e("Published", "cms-tree-page-view") ?></label>
+							</div>
+
+							<div>
+								<input type="submit" value="Add" class="button-primary">
+								<?php _e("or", "cms-tree-page-view") ?>
+								<a href="#" class="cms_tpv_add_cancel"><?php _e("cancel", "cms-tree-page-view") ?></a>
+							</div>
+
+						<!-- </fieldset> -->
+
+					</form>
+
+				</div>
+
 				<dl>
 					<dt><?php  _e("Last modified", "cms-tree-page-view") ?></dt>
 					<dd>
@@ -448,6 +793,7 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 					<dt><?php  _e("Page ID", "cms-tree-page-view") ?></dt>
 					<dd><span class="cms_tpv_page_actions_page_id"></span></dd>
 				</dl>
+
 				<div class="cms_tpv_page_actions_columns"></div>
 				<span class="cms_tpv_page_actions_arrow"></span>
 			</div>
@@ -468,6 +814,12 @@ function cms_tpv_pages_page() {
 
 	$post_type = cms_tpv_get_selected_post_type();
 	$post_type_object = get_post_type_object($post_type);
+
+	if ( 'post' != $post_type ) {
+		$post_new_file = "post-new.php?post_type=$post_type";
+	} else {
+		$post_new_file = 'post-new.php';
+	}
 	
 	?>
 	<div class="wrap">
@@ -475,6 +827,15 @@ function cms_tpv_pages_page() {
 		<h2><?php
 			$page_title = _x(sprintf('%1$s Tree View', $post_type_object->labels->name), "headline of page with tree", "cms-tree-page-view");
 			echo $page_title;
+
+			// Add "add new" link the same way as the regular post page has
+			if ( current_user_can( $post_type_object->cap->create_posts ) ) {
+				echo ' <a href="' . esc_url( $post_new_file ) . '" class="add-new-h2">' . esc_html( $post_type_object->labels->add_new ) . '</a>';
+			}
+
+
+
+
 		?></h2>
 		
 		<?php
@@ -734,15 +1095,15 @@ function cms_tpv_print_childs($pageID, $view = "all", $arrOpenChilds = null, $po
 				"data": {
 					"title": "<?php echo $title ?>",
 					"attr": {
-						"href": "<?php echo $editLink ?>",
-						"xid": "cms-tpv-<?php echo $onePage->ID ?>"
-					},
-					"xicon": "<?php echo CMS_TPV_URL . "images/page_white_text.png" ?>"
+						"href": "<?php echo $editLink ?>"
+						<?php /* , "xid": "cms-tpv-<?php echo $onePage->ID ?>" */ ?>
+					}<?php /*,
+					"xicon": "<?php echo CMS_TPV_URL . "images/page_white_text.png" ?>"*/?>
 				},
 				"attr": {
-					"xhref": "<?php echo $editLink ?>",
+					<?php /* "xhref": "<?php echo $editLink ?>", */ ?>
 					"id": "cms-tpv-<?php echo $onePage->ID ?>",
-					"xtitle": "<?php _e("Click to edit. Drag to move.", 'cms-tree-page-view') ?>",
+					<?php /* "xtitle": "<?php _e("Click to edit. Drag to move.", 'cms-tree-page-view') ?>", */ ?>
 					"class": "<?php echo $user_can_edit_page_css ?>"
 				},
 				<?php echo $strState ?>
@@ -764,6 +1125,7 @@ function cms_tpv_print_childs($pageID, $view = "all", $arrOpenChilds = null, $po
 				}
 				<?php
 				// if id is in $arrOpenChilds then also output children on this one
+				// TODO: if only "a few" (< 100?) pages then load all, but keep closed, so we don't have to do the ajax thingie
 				if ($hasChildren && isset($arrOpenChilds) && in_array($onePage->ID, $arrOpenChilds)) {
 					?>, "children": <?php
 					cms_tpv_print_childs($onePage->ID, $view, $arrOpenChilds, $post_type);
@@ -997,7 +1359,8 @@ function cms_tpv_move_page() {
 			$post_to_save = array(
 				"ID" => $post_node->ID,
 				"menu_order" => 0,
-				"post_parent" => $post_ref_node->ID
+				"post_parent" => $post_ref_node->ID,
+				"post_type" => $post_ref_node->post_type
 			);
 			wp_update_post( $post_to_save );
 			
@@ -1018,7 +1381,8 @@ function cms_tpv_move_page() {
 			$post_to_save = array(
 				"ID" => $post_node->ID,
 				"menu_order" => $post_ref_node->menu_order,
-				"post_parent" => $post_ref_node->post_parent
+				"post_parent" => $post_ref_node->post_parent,
+				"post_type" => $post_ref_node->post_type
 			);
 			wp_update_post( $post_to_save );
 
@@ -1038,7 +1402,8 @@ function cms_tpv_move_page() {
 			$post_to_save = array(
 				"ID" => $post_node->ID,
 				"menu_order" => $post_ref_node->menu_order+1,
-				"post_parent" => $post_ref_node->post_parent
+				"post_parent" => $post_ref_node->post_parent,
+				"post_type" => $post_ref_node->post_type
 			);
 			wp_update_post( $post_to_save );
 			
@@ -1123,19 +1488,48 @@ function cms_tpv_install() {
 	// after upgrading/re-enabling the plugin, also re-enable the little please-donate-box
 	update_option('cms_tpv_show_annoying_little_box', 1);
 	
-	// check and update version
-	$version = get_option('cms_tpv_version', 0);
-	if ($version <= 0) {
-		// first install or pre custom posts version:
-		// make sure pages are enabled by default
-		$options = array();
-		$options["dashboard"] = array("page");
-		$options["menu"] = array("page");
-		update_option('cms_tpv_options', $options);
-	}
-	
+	// first install or pre custom posts version:
+	// make sure pages are enabled by default
+	// run on admin_init so most themes and plugins have time to setup their things. late prio too.
+	add_action("admin_init", "cms_tpv_setup_defaults", 999);
+
 	// set to current version
 	update_option('cms_tpv_version', CMS_TPV_VERSION);
+}
+
+/**
+ * setup some defaults
+ */
+function cms_tpv_setup_defaults() {
+
+	// check and update version
+	$version = get_option('cms_tpv_version', 0);
+
+	//$version = 0;
+
+	if ($version <= 0) {
+
+		$options = array();
+
+		// Add pages to both dashboard and menu
+		$options["dashboard"] = array("page");
+		$options["menu"] = array("page");
+
+		// since 0.10.1 enable menu for all hierarchical custom post types
+		$post_types = get_post_types(array(
+			"show_ui" 		=> TRUE,
+			"hierarchical" 	=> TRUE
+		), "objects");
+
+		foreach ($post_types as $one_post_type) {
+			$options["menu"][] = $one_post_type->name;
+		}
+
+		$options["menu"] = array_unique($options["menu"]);
+
+		update_option('cms_tpv_options', $options);
+	}
+
 }
 
 // when plugins are loaded, check if current plugin version is same as stored
