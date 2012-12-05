@@ -33,6 +33,24 @@ Page management in WordPress won't get any easier than this!
 * Drag and drop between trees with different post types to change to post type of the draged item, i.e. change a regular page to became any custom post type
 * Support for translation plugin [WPML](http://wordpress.org/extend/plugins/sitepress-multilingual-cms/), so you can manage all the languages of your site
 
+#### Show your pages on your site in the same order as they are in CMS Tree Page View
+To show your pages on your website in the same order as they appear in this plugin, you must
+sort them by "menu order".
+
+´
+// Example using query_posts
+$args = array(
+  'orderby'=> 'menu_order',
+  'order'=>'ASC',
+  'post_type' => 'page',
+);
+$posts = query_posts($args);
+
+// Example using wp_query
+$query = new WP_Query( array( 'post_type' => 'page', 'orderby' => 'title menu_order', 'order' => 'ASC' ) );
+
+´
+
 #### Screencast
 Watch this screencast to see how easy you could be managing your pages:
 [youtube http://www.youtube.com/watch?v=H4BGomLi_FU]
@@ -98,7 +116,7 @@ Now the tree with the pages will be visible both on the dashboard and in the men
 - Fixed some IE-bugs
 
 = 1.0 =
-- New: create multiple pages at once! Add multiple pages faster than ever before! You can ever select if the new pages should be drafts or published. And ever drag and drop the pages to get the correct order even before adding them. I know - it's awesome!
+- New: create multiple pages at once! Add multiple pages faster than ever before! You can even select if the new pages should be drafts or published. And ever drag and drop the pages to get the correct order even before adding them. I know - it's awesome!
 - Fixed: adds new pages with the correct and selected WPML-language
 - Added: you can now change the type of a post by draging the post between different trees on the dashboard. So if you have one custom post type called "Cars" and another called "Bicycles" you can now drag a page from the cars tree to the bicicyles tree and the post will converted to that post type. Pretty powerful feature that you used to need a separately plugin to be able to do.
 - Misc fixes
