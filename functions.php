@@ -214,7 +214,10 @@ function cms_tpv_is_one_of_our_pages() {
 
 	$options = cms_tpv_get_options();
 	$post_type = cms_tpv_get_selected_post_type();
-	$current_screen = get_current_screen(); # sf_d($current_screen);
+
+	if (! function_exists("get_current_screen")) return FALSE;
+	
+	$current_screen = get_current_screen();
 	$is_plugin_page = FALSE;
 
 	// Check if current page is one of the ones defined in $options["menu"]
@@ -446,8 +449,8 @@ function cms_tpv_options() {
 
 function cms_tpv_get_options() {
 	$arr_options = (array) get_option('cms_tpv_options');
-	$arr_options["dashboard"] = (array) $arr_options["dashboard"];
-	$arr_options["menu"] = (array) $arr_options["menu"];
+	$arr_options["dashboard"] = (array) @$arr_options["dashboard"];
+	$arr_options["menu"] = (array) @$arr_options["menu"];
 	return $arr_options;
 }
 
@@ -483,7 +486,9 @@ function cms_tpv_is_post_type_hierarchical($post_type_object) {
 	return $is_hierarchical;
 }
 
-
+/**
+ * Get number of posts from WPML
+ */
 function cms_tpv_get_wpml_post_counts($post_type) {
 
 	global $wpdb;
@@ -510,6 +515,7 @@ function cms_tpv_get_wpml_post_counts($post_type) {
 		";
 		$res = $wpdb->get_results($sql);
 
+		$langs = array();
 		$langs['all'] = 0;
 		foreach($res as $r) {
 			$langs[$r->language_code] = $r->c;
@@ -570,9 +576,9 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 	
 		foreach ($wpml_post_counts["publish"] as $one_wpml_lang => $one_wpml_lang_count) {
 			if ("all" === $one_wpml_lang) continue;
-			$lang_post_count_all 		= $wpml_post_counts["publish"][$one_wpml_lang] + $wpml_post_counts["draft"][$one_wpml_lang];
-			$lang_post_count_publish	= $wpml_post_counts["publish"][$one_wpml_lang];
-			$lang_post_count_trash		= $wpml_post_counts["trash"][$one_wpml_lang];
+			$lang_post_count_all 		= (int) @$wpml_post_counts["publish"][$one_wpml_lang] + (int) @$wpml_post_counts["draft"][$one_wpml_lang];
+			$lang_post_count_publish	= (int) @$wpml_post_counts["publish"][$one_wpml_lang];
+			$lang_post_count_trash		= (int) @$wpml_post_counts["trash"][$one_wpml_lang];
 			$status_data_attributes["all"] 		.= " data-post-count-{$one_wpml_lang}='{$lang_post_count_all}' ";
 			$status_data_attributes["publish"] 	.= " data-post-count-{$one_wpml_lang}='{$lang_post_count_publish}' ";
 			$status_data_attributes["trash"] 	.= " data-post-count-{$one_wpml_lang}='{$lang_post_count_trash}' ";
@@ -687,7 +693,7 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 					<form class="cms_tree_view_search_form" method="get" action="">
 						<input type="text" name="search" class="cms_tree_view_search" />
 						<a title="<?php _e("Clear search", 'cms-tree-page-view') ?>" class="cms_tree_view_search_form_reset" href="#">x</a>
-						<input type="submit" class="cms_tree_view_search_submit" value="<?php _e("Search", 'cms-tree-page-view') ?>" />
+						<input type="submit" class="cms_tree_view_search_submit button button-small" value="<?php _e("Search", 'cms-tree-page-view') ?>" />
 						<span class="cms_tree_view_search_form_working"><?php _e("Searching...", 'cms-tree-page-view') ?></span>
 						<span class="cms_tree_view_search_form_no_hits"><?php _e("Nothing found.", 'cms-tree-page-view') ?></span>
 					</form>
@@ -941,6 +947,7 @@ function cms_tpv_get_pages($args = null) {
 	
 	#do_action_ref_array('parse_query', array(&$this));
 	#print_r($get_posts_args);
+
 	$pages = get_posts($get_posts_args);
 
 	// filter out pages for wpml, by applying same filter as get_pages does
@@ -1149,6 +1156,7 @@ function cms_tpv_print_childs($pageID, $view = "all", $arrOpenChilds = null, $po
 }
 
 // Act on AJAX-call
+// Get pages
 function cms_tpv_get_childs() {
 
 	header("Content-type: application/json");

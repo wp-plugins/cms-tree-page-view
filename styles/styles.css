@@ -160,6 +160,8 @@
 
 .cms_tree_view_search {
 	width: 130px;
+	height: 21px;
+	line-height: 20px;
 }
 .cms_tree_view_search_form_working,
 .cms_tree_view_search_form_no_hits

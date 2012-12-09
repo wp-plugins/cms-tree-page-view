@@ -757,7 +757,7 @@ jQuery(document).on("click", "a.cms_tvp_switch_lang", function(e) {
 		// check if this link has a data attr with count for the selected lang
 		var $a = jQuery(a_tag);
 		var link_count = $a.data("post-count-" + lang_code);
-		if ("undefined" === typeof(link_count)) return;
+		if ("undefined" === typeof(link_count)) link_count = 0;
 
 		$a.find(".count").text("(" + link_count + ")");
 
