@@ -827,3 +827,63 @@ function cms_tvp_set_view(view, elm) {
 	$wrapper.find(".cms_tpv_container").jstree(treeOptionsTmp);
 
 }
+
+
+
+
+jQuery(function($) {
+
+	// Move tree link into position
+	var tree_view_switch = $("#view-switch-tree"),
+		tree_view_switch_a = tree_view_switch.closest("a");
+
+	// Check if view-switch exists and add if not
+	var view_switch = $("div.view-switch");
+	if (! view_switch.length) {
+		
+		view_switch = $("<div class='view-switch'></div>");
+		$("div.tablenav-pages:first").after(view_switch);
+
+		var view_switch_list = $("#view-switch-list"),
+			view_switch_list_a = view_switch_list.closest("a");
+
+		view_switch.append(view_switch_list_a);
+
+	}
+	
+	// Add our link inside view switch
+	view_switch.append(tree_view_switch_a);
+
+
+
+	/*
+	$(document).on("click", "div.cmstpv-postsoverview-nav a", function(e) {
+		
+		e.preventDefault();
+		
+		var $t = $(this),
+			$li = $t.closest("li"),
+			$div = $t.closest("div"),
+			is_list_view = $li.hasClass("cmstpv-postsoverview-nav-list"),
+			is_tree_view = !is_list_view;
+		
+		$div.find("li").removeClass("cmstpv-active");
+
+		if (is_list_view) {
+
+			$("div.cmstpv-postsoverview-wrap").hide();
+			$("ul.subsubsub, #posts-filter").show();
+			$li.addClass("cmstpv-active");
+
+		} else if (is_tree_view) {
+			
+			$("div.cmstpv-postsoverview-wrap").show();
+			$("ul.subsubsub, #posts-filter").hide();
+			$li.addClass("cmstpv-active");
+
+		}
+
+	});
+*/
+
+});

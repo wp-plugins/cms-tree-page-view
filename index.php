@@ -68,6 +68,9 @@ add_action('wp_ajax_cms_tpv_add_pages', 'cms_tpv_add_pages');
 // activation
 register_activation_hook( WP_PLUGIN_DIR . "/cms-tree-page-view/index.php" , 'cms_tpv_install' );
 
+// To test activation hook, uncomment function below
+// cms_tpv_install();
+
 // catch upgrade
 add_action('plugins_loaded', 'cms_tpv_plugins_loaded' , 1);
 

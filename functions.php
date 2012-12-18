@@ -175,9 +175,14 @@ function cms_tpv_add_pages() {
 // require("FirePHPCore/FirePHP.class.php");
 // $firephp = FirePHP::getInstance(true);
 
+/**
+ * Output and add hooks in head
+ */
 function cms_tpv_admin_head() {
 
 	if (!cms_tpv_is_one_of_our_pages()) return;
+
+	cms_tpv_setup_postsoverview();
 
 	global $cms_tpv_view;
 	if (isset($_GET["cms_tpv_view"])) {
@@ -228,10 +233,16 @@ function cms_tpv_is_one_of_our_pages() {
 		}
 	}
 
+	// Check if current page is one of the ones defined in $options["postsoverview"]
+	if ($current_screen->base === "edit" && in_array($current_screen->post_type, $options["postsoverview"])) {
+		$is_plugin_page = TRUE;
+	}
+
 	if ($current_screen->id === "settings_page_cms-tpv-options") {
 		// Is settings page for plugin
 		$is_plugin_page = TRUE;
 	} elseif ($current_screen->id === "dashboard" && !empty($options["dashboard"])) {
+		// At least one post type is enabled to be visible on dashboard
 		$is_plugin_page = TRUE;
 	}
 
@@ -243,7 +254,6 @@ function cms_tpv_is_one_of_our_pages() {
  * Add styles and scripts to pages that use the plugin
  */
 function cms_admin_enqueue_scripts() {
-
 
 	if (cms_tpv_is_one_of_our_pages()) {
 
@@ -309,6 +319,86 @@ function cms_tpv_admin_init() {
 }
 
 /**
+ * Check if this is a post overview page and that plugin is enabled for this overview page
+ */
+function cms_tpv_setup_postsoverview() {
+
+	$options = cms_tpv_get_options();
+	$current_screen = get_current_screen();
+
+	if ("edit" === $current_screen->base && in_array($current_screen->post_type, $options["postsoverview"])) {
+
+		// Ok, this is a post overview page that we are enabled for
+		
+		// The filter we can use is in class-wp-list-table.php method views()
+		// $views = apply_filters( 'views_' . $this->screen->id, $views );
+		// it's the code that gets the links for the current views filters
+		
+		add_filter("views_" . $current_screen->id, "cmstpv_filter_views_edit");
+		// filter: views_edit-page $this->screen->id
+
+	}
+	
+}
+
+function cmstpv_filter_views_edit($views) {
+	
+	$current_screen = get_current_screen();
+	
+	ob_start();
+	cms_tpv_print_common_tree_stuff();
+	$tree_common_stuff = ob_get_clean();
+
+	/*
+	on non hierarcical post types this one exists:
+	tablenav-pages one-page
+	then after:
+	<div class="view-switch">
+
+	if view-switch exists: add item to it
+	if view-switch not exists: add it + item to it
+
+	http://playground.ep/wordpress/wp-admin/images/list.png
+	*/
+	$mode = "tree";
+	$class = isset($_GET["mode"]) && $_GET["mode"] == $mode ? " class='current' " : "";
+	$title = __("Tree View", 'cms-tree-page-view');
+	$tree_a = "<a href='" . esc_url( add_query_arg( 'mode', $mode, $_SERVER['REQUEST_URI'] ) ) . "' $class> <img id='view-switch-$mode' src='" . esc_url( includes_url( 'images/blank.gif' ) ) . "' width='20' height='20' title='$title' alt='$title' /></a>\n";
+
+	// Copy of wordpress own, if it does not exist
+	$wp_list_a = "";
+	if (is_post_type_hierarchical( $current_screen->post_type ) ) {
+
+		$mode = "list";
+		$class = isset($_GET["mode"]) && $_GET["mode"] != $mode ? "" : " class='current' ";
+		$title = __("List View");
+		$wp_list_a = "<a href='" . esc_url( add_query_arg( 'mode', $mode, $_SERVER['REQUEST_URI'] ) ) . "' $class><img id='view-switch-$mode' src='" . esc_url( includes_url( 'images/blank.gif' ) ) . "' width='20' height='20' title='$title' alt='$title' /></a>\n";
+
+	}
+
+	$out = "";
+	$out .= $tree_a;
+	$out .= $wp_list_a;
+
+	// Output tree related stuff if that view/mode is selected
+	if (isset($_GET["mode"]) && $_GET["mode"] === "tree") {
+	
+		$out .= sprintf('
+			<div class="cmstpv-postsoverview-wrap">
+				%1$s
+			</div>
+		', $tree_common_stuff);
+	
+	}
+
+	echo $out;
+
+	return $views;
+
+}
+
+
+/**
  * Add settings link to plugin page
  * Hopefully this helps some people to find the settings page quicker
  */
@@ -325,14 +415,22 @@ function cms_tpv_set_plugin_row_meta($links, $file) {
 }
 
 
-// save settings
+/**
+ * Save settings, called when saving settings in general > cms tree page view
+ */
 function cms_tpv_save_settings() {
+	
 	if (isset($_POST["cms_tpv_action"]) && $_POST["cms_tpv_action"] == "save_settings") {
+
 		$options = array();
 		$options["dashboard"] = (array) $_POST["post-type-dashboard"];
 		$options["menu"] = (array) $_POST["post-type-menu"];
+		$options["postsoverview"] = (array) $_POST["post-type-postsoverview"];
+		
 		update_option('cms_tpv_options', $options); // enable this to show box
+
 	}
+
 }
 
 /**
@@ -392,7 +490,8 @@ function cms_tpv_options() {
 	<div class="wrap">
 	
 		<?php cms_tpv_show_annoying_box(); ?>
-		
+	
+		<?php screen_icon(); ?>	
 		<h2><?php echo CMS_TPV_NAME ?> <?php _e("settings", 'cms-tree-page-view') ?></h2>
 
 		<form method="post" action="options.php">
@@ -401,34 +500,47 @@ function cms_tpv_options() {
 			<h3><?php _e("Select where to show a tree for pages and custom post types", 'cms-tree-page-view')?></h3>
 			
 			<?php
+			
 			$options = cms_tpv_get_options();
 
 			$post_types = get_post_types(array(
 				"show_ui" => TRUE
 			), "objects");
+			
 			$arr_page_options = array();
 			foreach ($post_types as $one_post_type) {
+
 				$name = $one_post_type->name;
 				
-				if ($name == "post") {
+				if ($name === "post") {
 					// no support for pages. you could show them.. but since we can't reorder them there is not idea to show them.. or..?
 					// 14 jul 2011: ok, let's enable it for posts too. some people says it useful
 					// http://wordpress.org/support/topic/this-plugin-should-work-also-on-posts
 					// continue;
+				} else if ($name === "attachment") {
+					// No support for media/attachment
+					continue;
 				}
 
 				$arr_page_options[] = "post-type-dashboard-$name";
 				$arr_page_options[] = "post-type-menu-$name";
+				$arr_page_options[] = "post-type-postsoverview-$name";
+				
+
+				echo "<h3>".$one_post_type->label."</h3>";
 				echo "<p>";
-				echo "<strong>".$one_post_type->label."</strong>";
 				
 				$checked = (in_array($name, $options["dashboard"])) ? " checked='checked' " : "";
-				echo "<br />";
 				echo "<input $checked type='checkbox' name='post-type-dashboard[]' value='$name' id='post-type-dashboard-$name' /> <label for='post-type-dashboard-$name'>" . __("On dashboard", 'cms-tree-page-view') . "</label>";
 				
-				$checked = (in_array($name, $options["menu"])) ? " checked='checked' " : "";
 				echo "<br />";
+				$checked = (in_array($name, $options["menu"])) ? " checked='checked' " : "";
 				echo "<input $checked type='checkbox' name='post-type-menu[]' value='$name' id='post-type-menu-$name' /> <label for='post-type-menu-$name'>" . __("In menu", 'cms-tree-page-view') . "</label>";
+
+				echo "<br />";
+				$checked = (in_array($name, $options["postsoverview"])) ? " checked='checked' " : "";
+				echo "<input $checked type='checkbox' name='post-type-postsoverview[]' value='$name' id='post-type-postsoverview-$name' /> <label for='post-type-postsoverview-$name'>" . __("In post overview screen", 'cms-tree-page-view') . "</label>";
+
 				echo "</p>";
 
 			}
@@ -447,10 +559,15 @@ function cms_tpv_options() {
 	<?php
 }
 
+/**
+ * Load settings
+ * @return array with options
+ */
 function cms_tpv_get_options() {
 	$arr_options = (array) get_option('cms_tpv_options');
 	$arr_options["dashboard"] = (array) @$arr_options["dashboard"];
 	$arr_options["menu"] = (array) @$arr_options["menu"];
+	$arr_options["postsoverview"] = (array) @$arr_options["postsoverview"];
 	return $arr_options;
 }
 
@@ -541,7 +658,7 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 	if (!$post_type) {
 		$post_type = cms_tpv_get_selected_post_type();
 	}
-	#echo "post_type: $post_type";
+	
 	$post_type_object = get_post_type_object($post_type);
 	$get_pages_args = array("post_type" => $post_type);
 
@@ -831,6 +948,7 @@ function cms_tpv_pages_page() {
 	<div class="wrap">
 		<?php echo get_screen_icon(); ?>
 		<h2><?php
+
 			$page_title = _x(sprintf('%1$s Tree View', $post_type_object->labels->name), "headline of page with tree", "cms-tree-page-view");
 			echo $page_title;
 
@@ -838,9 +956,6 @@ function cms_tpv_pages_page() {
 			if ( current_user_can( $post_type_object->cap->create_posts ) ) {
 				echo ' <a href="' . esc_url( $post_new_file ) . '" class="add-new-h2">' . esc_html( $post_type_object->labels->add_new ) . '</a>';
 			}
-
-
-
 
 		?></h2>
 		
@@ -1512,8 +1627,7 @@ function cms_tpv_setup_defaults() {
 
 	// check and update version
 	$version = get_option('cms_tpv_version', 0);
-
-	//$version = 0;
+	// $version = 0; // uncomment to test default settings
 
 	if ($version <= 0) {
 

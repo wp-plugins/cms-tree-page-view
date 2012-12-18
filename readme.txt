@@ -114,6 +114,7 @@ Now the tree with the pages will be visible both on the dashboard and in the men
 - Fixed a undefined index warning
 - Fixed wrong language count for WPML-enabled post types
 - Perhaps fixed a problem with some other plugins, for example Formidable Pro
+- Added icon to settings page
 
 = 1.1 =
 - Added "Add new"-link next to headline, to better match the regular post overview page + it makes it possible to add new pages/posts when there are no pages/posts added (previously there needed to be at least one post added to be able to add new posts)
