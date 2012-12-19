@@ -139,7 +139,7 @@ var cms_tree_page_view = (function ($) {
 		jQuery(document).on("submit", "div.cms_tpv_action_add_doit form", function(e) {
 
 			//e.preventDefault();
-
+			my.log("submitting form");
 			var $form = $(this);
 			$form.find("input[type='submit']").val( cmstpv_l10n.Adding ).attr("disabled", true);
 
@@ -830,14 +830,18 @@ function cms_tvp_set_view(view, elm) {
 
 
 
-
+/**
+ * Stuff for the posts overview setting
+ */
 jQuery(function($) {
 
 	// Move tree link into position
 	var tree_view_switch = $("#view-switch-tree"),
-		tree_view_switch_a = tree_view_switch.closest("a");
+		tree_view_switch_a = tree_view_switch.closest("a"),
+		cmstpv_postsoverview_wrap = $("div.cmstpv-postsoverview-wrap");
 
-	// Check if view-switch exists and add if not
+	// Check if view-switch exists and add it if it does not
+	// It must exist because that's where we have our swithc to tree-icon
 	var view_switch = $("div.view-switch");
 	if (! view_switch.length) {
 		
@@ -853,8 +857,12 @@ jQuery(function($) {
 	
 	// Add our link inside view switch
 	view_switch.append(tree_view_switch_a);
-
-
+	
+	// add a class to wpbody so we can style things
+	if (cmstpv_postsoverview_wrap.length) {
+		$wp_body = $("#wpbody");
+		$wp_body.addClass("cmstpv_postsoverview_enabled");
+	}
 
 	/*
 	$(document).on("click", "div.cmstpv-postsoverview-nav a", function(e) {

@@ -464,12 +464,16 @@ ul.cms_tpv_action_add_doit_pages {
 }
 
 /*
-
+for posts overview enabled mode
 */
 #view-switch-tree {
 	background: url(images/switch-view-icons.png) 0 0;
-
+	visibility: hidden;
 }
 .current #view-switch-tree {
 	background-position: -20px 0;
 }
+.view-switch #view-switch-tree {
+	visibility: visible;
+}
+

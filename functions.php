@@ -334,14 +334,44 @@ function cms_tpv_setup_postsoverview() {
 		// $views = apply_filters( 'views_' . $this->screen->id, $views );
 		// it's the code that gets the links for the current views filters
 		
-		add_filter("views_" . $current_screen->id, "cmstpv_filter_views_edit");
+		// works, but to high up
+		#add_filter("views_" . $current_screen->id, "cmstpv_filter_views_edit");
 		// filter: views_edit-page $this->screen->id
+
+		cmstpv_postoverview_head();
+
+		#class wp_list_table
+		#$_sortable = apply_filters( "manage_{$this->screen->id}_sortable_columns", $this->get_sortable_columns() );
+		add_filter("manage_" . $current_screen->id . "_sortable_columns", "cmstpv_filter_views_edit_postsoverview");
+		// manage_edit-page_sortable_columns
+
 
 	}
 	
 }
 
-function cmstpv_filter_views_edit($views) {
+/**
+ * Add style etc to wp head to minimize flashing content
+ */
+function cmstpv_postoverview_head() {
+
+	if ( isset($_GET["mode"]) && $_GET["mode"] === "tree" ) {
+		?>
+		<style>
+			/* hide and position WP things */
+			/* TODO: move this to wp head so we don't have time to see wps own stuff */
+			.subsubsub, .tablenav.bottom, .tablenav .actions, .wp-list-table, .search-box { display: none; }
+			.tablenav.top { float: right; }
+		</style>
+		<?php
+	}
+
+}
+
+/**
+ * Output tree and html code for post overview page
+ */
+function cmstpv_filter_views_edit_postsoverview($filter_var) {
 	
 	$current_screen = get_current_screen();
 	
@@ -393,7 +423,7 @@ function cmstpv_filter_views_edit($views) {
 
 	echo $out;
 
-	return $views;
+	return $filter_var;
 
 }
 
