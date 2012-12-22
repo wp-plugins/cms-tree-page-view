@@ -841,7 +841,7 @@ jQuery(function($) {
 		cmstpv_postsoverview_wrap = $("div.cmstpv-postsoverview-wrap");
 
 	// Check if view-switch exists and add it if it does not
-	// It must exist because that's where we have our swithc to tree-icon
+	// It must exist because that's where we have our switch to tree-icon
 	var view_switch = $("div.view-switch");
 	if (! view_switch.length) {
 		
@@ -857,41 +857,18 @@ jQuery(function($) {
 	
 	// Add our link inside view switch
 	view_switch.append(tree_view_switch_a);
+	view_switch.addClass("view-switch-cstpv-icon-added");
 	
-	// add a class to wpbody so we can style things
+	// if in tree mode: add a class to wpbody so we can style things
 	if (cmstpv_postsoverview_wrap.length) {
+
 		$wp_body = $("#wpbody");
 		$wp_body.addClass("cmstpv_postsoverview_enabled");
+
+		// Move wordpress table with view etc above cms tree page view so the icons get the correct position
+		var viewswitch = $("div.view-switch");
+		viewswitch.appendTo(cmstpv_postsoverview_wrap);
+
 	}
-
-	/*
-	$(document).on("click", "div.cmstpv-postsoverview-nav a", function(e) {
-		
-		e.preventDefault();
-		
-		var $t = $(this),
-			$li = $t.closest("li"),
-			$div = $t.closest("div"),
-			is_list_view = $li.hasClass("cmstpv-postsoverview-nav-list"),
-			is_tree_view = !is_list_view;
-		
-		$div.find("li").removeClass("cmstpv-active");
-
-		if (is_list_view) {
-
-			$("div.cmstpv-postsoverview-wrap").hide();
-			$("ul.subsubsub, #posts-filter").show();
-			$li.addClass("cmstpv-active");
-
-		} else if (is_tree_view) {
-			
-			$("div.cmstpv-postsoverview-wrap").show();
-			$("ul.subsubsub, #posts-filter").hide();
-			$li.addClass("cmstpv-active");
-
-		}
-
-	});
-*/
 
 });

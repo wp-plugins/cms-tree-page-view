@@ -1,5 +1,35 @@
 <?php
 
+#add_action('all', create_function('', 'var_dump(current_filter());'));
+#add_action("all_admin_notices", function() {
+
+	// Ok, men precis innan div.wrap
+#	echo "<p>ccccc</p>";
+
+#});
+
+#add_action("views_edit-products", function() {
+
+	// Ok, men innan div.wrap
+#	echo "<p>ddddd</p>";
+
+#});
+
+
+
+/*
+intressanta actions
+admin_notices
+all_admin_notices
+
+generella
+esc_html
+site_option_site_admins
+map_meta_cap
+views_edit-products
+*/
+
+
 /**
  * Use the ajax action-thingie to catch our form with new pages
  * Add pages and then redirect to...?
@@ -335,15 +365,19 @@ function cms_tpv_setup_postsoverview() {
 		// it's the code that gets the links for the current views filters
 		
 		// works, but to high up
-		#add_filter("views_" . $current_screen->id, "cmstpv_filter_views_edit");
+		add_filter("views_" . $current_screen->id, "cmstpv_filter_views_edit_postsoverview");
 		// filter: views_edit-page $this->screen->id
 
 		cmstpv_postoverview_head();
 
 		#class wp_list_table
 		#$_sortable = apply_filters( "manage_{$this->screen->id}_sortable_columns", $this->get_sortable_columns() );
-		add_filter("manage_" . $current_screen->id . "_sortable_columns", "cmstpv_filter_views_edit_postsoverview");
+		// add_filter("manage_" . $current_screen->id . "_sortable_columns", "cmstpv_filter_views_edit_postsoverview");
 		// manage_edit-page_sortable_columns
+
+		#all_admin_notices
+		// views_edit-products
+
 
 
 	}
@@ -360,8 +394,19 @@ function cmstpv_postoverview_head() {
 		<style>
 			/* hide and position WP things */
 			/* TODO: move this to wp head so we don't have time to see wps own stuff */
-			.subsubsub, .tablenav.bottom, .tablenav .actions, .wp-list-table, .search-box { display: none; }
+			.subsubsub, .tablenav.bottom, .tablenav .actions, .wp-list-table, .search-box, .tablenav .tablenav-pages { display: none !important; }
 			.tablenav.top { float: right; }
+			.view-switch { visibility: hidden; }
+		</style>
+		<?php
+	} else {
+		// post overview is enabled, but not active
+		// make room for our icon directly so page does not look jerky while adding it
+		?>
+		<style>
+			.view-switch {
+				padding-right: 23px;
+			}
 		</style>
 		<?php
 	}
@@ -372,7 +417,7 @@ function cmstpv_postoverview_head() {
  * Output tree and html code for post overview page
  */
 function cmstpv_filter_views_edit_postsoverview($filter_var) {
-	
+
 	$current_screen = get_current_screen();
 	
 	ob_start();
@@ -400,7 +445,7 @@ function cmstpv_filter_views_edit_postsoverview($filter_var) {
 	if (is_post_type_hierarchical( $current_screen->post_type ) ) {
 
 		$mode = "list";
-		$class = isset($_GET["mode"]) && $_GET["mode"] != $mode ? "" : " class='current' ";
+		$class = isset($_GET["mode"]) && $_GET["mode"] != $mode ? " class='cmstpv_add_list_view' " : " class='cmstpv_add_list_view current' ";
 		$title = __("List View");
 		$wp_list_a = "<a href='" . esc_url( add_query_arg( 'mode', $mode, $_SERVER['REQUEST_URI'] ) ) . "' $class><img id='view-switch-$mode' src='" . esc_url( includes_url( 'images/blank.gif' ) ) . "' width='20' height='20' title='$title' alt='$title' /></a>\n";
 
@@ -524,66 +569,85 @@ function cms_tpv_options() {
 		<?php screen_icon(); ?>	
 		<h2><?php echo CMS_TPV_NAME ?> <?php _e("settings", 'cms-tree-page-view') ?></h2>
 
-		<form method="post" action="options.php">
+		<form method="post" action="options.php" class="cmtpv_options_form">
+			
 			<?php wp_nonce_field('update-options'); ?>
 					
 			<h3><?php _e("Select where to show a tree for pages and custom post types", 'cms-tree-page-view')?></h3>
 			
-			<?php
-			
-			$options = cms_tpv_get_options();
-
-			$post_types = get_post_types(array(
-				"show_ui" => TRUE
-			), "objects");
-			
-			$arr_page_options = array();
-			foreach ($post_types as $one_post_type) {
-
-				$name = $one_post_type->name;
+			<table class="form-table">
 				
-				if ($name === "post") {
-					// no support for pages. you could show them.. but since we can't reorder them there is not idea to show them.. or..?
-					// 14 jul 2011: ok, let's enable it for posts too. some people says it useful
-					// http://wordpress.org/support/topic/this-plugin-should-work-also-on-posts
-					// continue;
-				} else if ($name === "attachment") {
-					// No support for media/attachment
-					continue;
-				}
-
-				$arr_page_options[] = "post-type-dashboard-$name";
-				$arr_page_options[] = "post-type-menu-$name";
-				$arr_page_options[] = "post-type-postsoverview-$name";
+				<tbody>
 				
+					<?php
+					
+					$options = cms_tpv_get_options();
 
-				echo "<h3>".$one_post_type->label."</h3>";
-				echo "<p>";
-				
-				$checked = (in_array($name, $options["dashboard"])) ? " checked='checked' " : "";
-				echo "<input $checked type='checkbox' name='post-type-dashboard[]' value='$name' id='post-type-dashboard-$name' /> <label for='post-type-dashboard-$name'>" . __("On dashboard", 'cms-tree-page-view') . "</label>";
-				
-				echo "<br />";
-				$checked = (in_array($name, $options["menu"])) ? " checked='checked' " : "";
-				echo "<input $checked type='checkbox' name='post-type-menu[]' value='$name' id='post-type-menu-$name' /> <label for='post-type-menu-$name'>" . __("In menu", 'cms-tree-page-view') . "</label>";
+					$post_types = get_post_types(array(
+						"show_ui" => TRUE
+					), "objects");
+					
+					$arr_page_options = array();
+					foreach ($post_types as $one_post_type) {
 
-				echo "<br />";
-				$checked = (in_array($name, $options["postsoverview"])) ? " checked='checked' " : "";
-				echo "<input $checked type='checkbox' name='post-type-postsoverview[]' value='$name' id='post-type-postsoverview-$name' /> <label for='post-type-postsoverview-$name'>" . __("In post overview screen", 'cms-tree-page-view') . "</label>";
+						$name = $one_post_type->name;
+						
+						if ($name === "post") {
+							// no support for pages. you could show them.. but since we can't reorder them there is not idea to show them.. or..?
+							// 14 jul 2011: ok, let's enable it for posts too. some people says it useful
+							// http://wordpress.org/support/topic/this-plugin-should-work-also-on-posts
+							// continue;
+						} else if ($name === "attachment") {
+							// No support for media/attachment
+							continue;
+						}
 
-				echo "</p>";
+						$arr_page_options[] = "post-type-dashboard-$name";
+						$arr_page_options[] = "post-type-menu-$name";
+						$arr_page_options[] = "post-type-postsoverview-$name";
+						
+						echo "<tr>";
 
-			}
+						echo "<th scope='row'>";
+						echo "<p>".$one_post_type->label."</p>";
+						echo "</th>";
 
-			?>
-			
+						echo "<td>";
+
+						echo "<p>";
+						
+						$checked = (in_array($name, $options["dashboard"])) ? " checked='checked' " : "";
+						echo "<input $checked type='checkbox' name='post-type-dashboard[]' value='$name' id='post-type-dashboard-$name' /> <label for='post-type-dashboard-$name'>" . __("On dashboard", 'cms-tree-page-view') . "</label>";
+						
+						echo "<br />";
+						$checked = (in_array($name, $options["menu"])) ? " checked='checked' " : "";
+						echo "<input $checked type='checkbox' name='post-type-menu[]' value='$name' id='post-type-menu-$name' /> <label for='post-type-menu-$name'>" . __("In menu", 'cms-tree-page-view') . "</label>";
+
+						echo "<br />";
+						$checked = (in_array($name, $options["postsoverview"])) ? " checked='checked' " : "";
+						echo "<input $checked type='checkbox' name='post-type-postsoverview[]' value='$name' id='post-type-postsoverview-$name' /> <label for='post-type-postsoverview-$name'>" . __("On post overview screen", 'cms-tree-page-view') . "</label>";
+
+						echo "</p>";
+
+						echo "</td>";
+
+						echo "</tr>";
+
+					}
+
+					?>
+				</tbody>
+			</table>
+
 			<input type="hidden" name="action" value="update" />
 			<input type="hidden" name="cms_tpv_action" value="save_settings" />
 			<input type="hidden" name="page_options" value="<?php echo join($arr_page_options, ",") ?>" />
 			<p class="submit">
 				<input type="submit" class="button-primary" value="<?php _e('Save Changes', 'cms-tree-page-view') ?>" />
 			</p>
+
 		</form>
+
 	</div>
 	
 	<?php
@@ -787,9 +851,9 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 							<a class='cms_tvp_switch_lang $selected cms_tpv_switch_language_code_{$one_lang["language_code"]}' href='#'>
 								$one_lang_details[display_name]
 								<span class='count'>(" . $lang_count . ")</span>
-							</a> | </li>";
+							</a> |</li>";
 				}
-				$lang_out = preg_replace('/ \| <\/li>$/', "</li>", $lang_out);
+				$lang_out = preg_replace('/ \|<\/li>$/', "</li>", $lang_out);
 				$lang_out .= "</ul>";
 				echo $lang_out;
 			}
@@ -812,14 +876,12 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 					<a class="cms_tvp_view_all  <?php echo ($cms_tpv_view=="all") ? "current" : "" ?>" href="#" <?php echo $status_data_attributes["all"] ?>>
 						<?php _e("All", 'cms-tree-page-view') ?>
 						<span class="count">(<?php echo $post_count_all ?>)</span>
-					</a> |
-				</li>
+					</a> |</li>
 				<li class="cms_tvp_view_is_status_view">
 					<a class="cms_tvp_view_public <?php echo ($cms_tpv_view=="public") ? "current" : "" ?>" href="#" <?php echo $status_data_attributes["publish"] ?>>
 						<?php _e("Public", 'cms-tree-page-view') ?>
 						<span class="count">(<?php echo $post_count_publish ?>)</span>
-					</a> |
-				</li>
+					</a> |</li>
 				<li class="cms_tvp_view_is_status_view">
 					<a class="cms_tvp_view_trash <?php echo ($cms_tpv_view=="trash") ? "current" : "" ?>" href="#" <?php echo $status_data_attributes["trash"] ?>>
 						<?php _e("Trash", 'cms-tree-page-view') ?>
