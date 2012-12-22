@@ -6,7 +6,7 @@ Requires at least: 3.4
 Tested up to: 3.5
 Stable tag: 1.2
 
-Adds a tree view of all your pages & custom posts. Gives you great overview + options to drag & drop to reorder and option to add multiple pages at once.
+Adds a tree view of all pages & custom posts. Get a great overview + options to drag & drop to reorder and option to add multiple pages at once.
 
 == Description ==
 
