@@ -2,11 +2,11 @@
 Contributors: eskapism, MarsApril
 Donate link: http://eskapism.se/sida/donate/
 Tags: page, pages, posts, custom posts, tree, cms, dashboard, overview, drag-and-drop, rearrange, management, manage, admin
-Requires at least: 3.0
+Requires at least: 3.4
 Tested up to: 3.5
 Stable tag: 1.1
 
-Adds a tree of all your pages or custom posts. Use drag & drop to reorder your pages, and edit, view, add, and search your pages.
+Adds a tree view of all your pages & custom posts. Gives you great overview + options to drag & drop to reorder and option to add multiple pages at once.
 
 == Description ==
 
@@ -76,14 +76,9 @@ This plugin is available in the following languages:
 * Lithuanian
 * Estonian
 
-#### Making the tree available for your vistors
-If you're looking for a version of this page tree that the vistors of your site can use, then check out
-this navigation widget called [Nice Navigation](http://wordpress.org/extend/plugins/nice-navigation/).
-
 #### Always show your pages in the admin area
 If you want to always have a list of your pages available in your WordPress admin area, please check out the plugin
 [Admin Menu Tree Page View](http://wordpress.org/extend/plugins/admin-menu-tree-page-view/).
-
 
 #### Donation and more plugins
 * If you like this plugin don't forget to [donate to support further development](http://eskapism.se/sida/donate/).
@@ -100,16 +95,16 @@ Now the tree with the pages will be visible both on the dashboard and in the men
 == Screenshots ==
 
 1. The page tree in action
-2. Edit, view and add pages (choices visible upon mouse over).
-3. Search pages.
+2. Edit, view and even add multiple pages at once!
+3. Search pages
 4. Drag-and-drop to rearrange/change the order of the pages.
 5. The tree is also available on the dashboard and therefore available immediately after you login.
-6. The settings page - choose where you want the tree to show up
-7. Users of WPML can find all their languages in the tree
+6. Users of WPML can find all their languages in the tree
+7. Quickly switch between regular list view and tree view using the switch icon
 
 == Changelog ==
 
-= 1.x =
+= 1.2 =
 - Added option to show the tree in the regular post overview screen. Makes the tree view fit into the regular workflow and GUI much better. To enable: go to settings > CMS Tree Page View > Tick the option "On post overview screen". Then go to for example the pages overview screen and in the upper right corner there will be an icon to switch between the regular list view and the tree view of this plugin.
 - Fixed so search button now looks more like the rest of the WordPress GUI
 - Fixed a undefined index warning

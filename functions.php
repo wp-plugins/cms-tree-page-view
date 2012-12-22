@@ -1,35 +1,5 @@
 <?php
 
-#add_action('all', create_function('', 'var_dump(current_filter());'));
-#add_action("all_admin_notices", function() {
-
-	// Ok, men precis innan div.wrap
-#	echo "<p>ccccc</p>";
-
-#});
-
-#add_action("views_edit-products", function() {
-
-	// Ok, men innan div.wrap
-#	echo "<p>ddddd</p>";
-
-#});
-
-
-
-/*
-intressanta actions
-admin_notices
-all_admin_notices
-
-generella
-esc_html
-site_option_site_admins
-map_meta_cap
-views_edit-products
-*/
-
-
 /**
  * Use the ajax action-thingie to catch our form with new pages
  * Add pages and then redirect to...?
@@ -359,26 +329,9 @@ function cms_tpv_setup_postsoverview() {
 	if ("edit" === $current_screen->base && in_array($current_screen->post_type, $options["postsoverview"])) {
 
 		// Ok, this is a post overview page that we are enabled for
-		
-		// The filter we can use is in class-wp-list-table.php method views()
-		// $views = apply_filters( 'views_' . $this->screen->id, $views );
-		// it's the code that gets the links for the current views filters
-		
-		// works, but to high up
 		add_filter("views_" . $current_screen->id, "cmstpv_filter_views_edit_postsoverview");
-		// filter: views_edit-page $this->screen->id
 
 		cmstpv_postoverview_head();
-
-		#class wp_list_table
-		#$_sortable = apply_filters( "manage_{$this->screen->id}_sortable_columns", $this->get_sortable_columns() );
-		// add_filter("manage_" . $current_screen->id . "_sortable_columns", "cmstpv_filter_views_edit_postsoverview");
-		// manage_edit-page_sortable_columns
-
-		#all_admin_notices
-		// views_edit-products
-
-
 
 	}
 	
@@ -1711,6 +1664,7 @@ function cms_tpv_install() {
 	// set to current version
 	update_option('cms_tpv_version', CMS_TPV_VERSION);
 }
+#cms_tpv_install();
 
 /**
  * setup some defaults
@@ -1719,7 +1673,7 @@ function cms_tpv_setup_defaults() {
 
 	// check and update version
 	$version = get_option('cms_tpv_version', 0);
-	// $version = 0; // uncomment to test default settings
+	#$version = 0; // uncomment to test default settings
 
 	if ($version <= 0) {
 
@@ -1727,9 +1681,9 @@ function cms_tpv_setup_defaults() {
 
 		// Add pages to both dashboard and menu
 		$options["dashboard"] = array("page");
-		$options["menu"] = array("page");
 
 		// since 0.10.1 enable menu for all hierarchical custom post types
+		// since 1.2 also enable on post overview page
 		$post_types = get_post_types(array(
 			"show_ui" 		=> TRUE,
 			"hierarchical" 	=> TRUE
@@ -1737,11 +1691,14 @@ function cms_tpv_setup_defaults() {
 
 		foreach ($post_types as $one_post_type) {
 			$options["menu"][] = $one_post_type->name;
+			$options["postsoverview"][] = $one_post_type->name;
 		}
 
 		$options["menu"] = array_unique($options["menu"]);
+		$options["postsoverview"] = array_unique($options["postsoverview"]);
 
 		update_option('cms_tpv_options', $options);
+	
 	}
 
 }
