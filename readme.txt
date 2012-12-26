@@ -105,6 +105,8 @@ Now the tree with the pages will be visible both on the dashboard and in the men
 == Changelog ==
 
 = 1.x =
+- Fixed wrong count if WPML where activated and future or private posts existed for a language
+- Show info message if no posts found after fetching posts with AJAX
 - Updated Swedish translation
 - Updated POT file
 

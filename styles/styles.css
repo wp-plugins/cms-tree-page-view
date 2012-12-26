@@ -39,6 +39,11 @@
 .cms-tpv-subsubsub {
 	margin-top: 8px;
 	color: #666;
+	margin-bottom: 0;
+}
+
+.cms_tvp_switch_langs + .cms-tpv-subsubsub {
+	margin-top: 0;
 }
 
 .cms-tpv-subsubsub li {

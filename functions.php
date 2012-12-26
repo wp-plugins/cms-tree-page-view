@@ -298,6 +298,7 @@ function cms_admin_enqueue_scripts() {
 			"Password_protected_page" => __("Password protected page", 'cms-tree-page-view'),
 			"Adding_page" => __("Adding page...", 'cms-tree-page-view'),
 			"Adding" => __("Adding ...", 'cms-tree-page-view'),
+			"No posts found" => __("No posts found.", 'cms-tree-page-view')
 		);
 		wp_localize_script( "cms_tree_page_view", 'cmstpv_l10n', $oLocale);
 
@@ -657,7 +658,7 @@ function cms_tpv_get_wpml_post_counts($post_type) {
 
 	global $wpdb;
 
-	$arr_statuses = array("publish", "draft", "trash");
+	$arr_statuses = array("publish", "draft", "trash", "future", "private");
 	$arr_counts = array();
 
 	foreach ($arr_statuses as $post_status) {
@@ -677,6 +678,7 @@ function cms_tpv_get_wpml_post_counts($post_type) {
 			WHERE p.post_type='{$post_type}' AND t.element_type='post_{$post_type}' {$extra_cond}
 			GROUP BY language_code
 		";
+
 		$res = $wpdb->get_results($sql);
 
 		$langs = array();
@@ -733,11 +735,11 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 		$langs = array();
 		
 		$wpml_post_counts = cms_tpv_get_wpml_post_counts($post_type);
-		
-		$post_count_all = @$wpml_post_counts["publish"][$wpml_current_lang] + @$wpml_post_counts["draft"][$wpml_current_lang];
-		$post_count_publish	= @$wpml_post_counts["publish"][$wpml_current_lang];
-		$post_count_trash	= @$wpml_post_counts["trash"][$wpml_current_lang];
-	
+
+		$post_count_all = (int) @$wpml_post_counts["private"][$wpml_current_lang] + (int) @$wpml_post_counts["future"][$wpml_current_lang] + (int) @$wpml_post_counts["publish"][$wpml_current_lang] + (int) @$wpml_post_counts["draft"][$wpml_current_lang];
+		$post_count_publish	= (int) @$wpml_post_counts["publish"][$wpml_current_lang];
+		$post_count_trash	= (int) @$wpml_post_counts["trash"][$wpml_current_lang];
+
 		foreach ($wpml_post_counts["publish"] as $one_wpml_lang => $one_wpml_lang_count) {
 			if ("all" === $one_wpml_lang) continue;
 			$lang_post_count_all 		= (int) @$wpml_post_counts["publish"][$one_wpml_lang] + (int) @$wpml_post_counts["draft"][$one_wpml_lang];
@@ -797,7 +799,7 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 						$selected = "current";
 					}
 
-					$lang_count = @$wpml_post_counts["publish"][$one_lang["language_code"]] + @$wpml_post_counts["draft"][$one_lang["language_code"]];
+					$lang_count = (int) @$wpml_post_counts["publish"][$one_lang["language_code"]] + (int) @$wpml_post_counts["draft"][$one_lang["language_code"]];
 
 					$lang_out .= "
 						<li>
@@ -811,12 +813,6 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 				echo $lang_out;
 			}
 
-		}
-
-		if (empty($pages)) {
-		
-			echo '<div class="updated fade below-h2"><p>' . __("No posts found.", 'cms-tree-page-view') . '</p></div>';
-		
 		}
 
 		if (true) {
@@ -967,6 +963,13 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 			</div>
 			<?php
 		}
+
+		if (empty($pages)) {
+		
+			echo '<div class="updated fade below-h2"><p>' . __("No posts found.", 'cms-tree-page-view') . '</p></div>';
+		
+		}
+
 		?>
 		
 	</div>
