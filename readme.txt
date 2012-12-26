@@ -104,6 +104,10 @@ Now the tree with the pages will be visible both on the dashboard and in the men
 
 == Changelog ==
 
+= 1.x =
+- Updated Swedish translation
+- Updated POT file
+
 = 1.2 =
 - Added option to show the tree in the regular post overview screen. Makes the tree view fit into the regular workflow and GUI much better. To enable: go to settings > CMS Tree Page View > Tick the option "On post overview screen". Then go to for example the pages overview screen and in the upper right corner there will be an icon to switch between the regular list view and the tree view of this plugin.
 - Fixed so search button now looks more like the rest of the WordPress GUI
