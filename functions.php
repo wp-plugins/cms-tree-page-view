@@ -500,7 +500,7 @@ function cms_tpv_admin_menu() {
 		$post_type_object = get_post_type_object($one_menu_post_type);
 		
 		$menu_name = _x("Tree View", "name in menu", "cms-tree-page-view");
-		$page_title = _x(sprintf('%1$s Tree View', $post_type_object->labels->name), "title on page with tree", "cms-tree-page-view");
+		$page_title = sprintf(_x('%1$s Tree View', "title on page with tree", "cms-tree-page-view"), $post_type_object->labels->name);
 		add_submenu_page($slug, $page_title, $menu_name, $post_type_object->cap->edit_posts, "cms-tpv-page-$one_menu_post_type", "cms_tpv_pages_page");
 	}
 
@@ -994,7 +994,7 @@ function cms_tpv_pages_page() {
 		<?php echo get_screen_icon(); ?>
 		<h2><?php
 
-			$page_title = _x(sprintf('%1$s Tree View', $post_type_object->labels->name), "headline of page with tree", "cms-tree-page-view");
+			$page_title = sprintf(_x('%1$s Tree View', "headline of page with tree", "cms-tree-page-view"), $post_type_object->labels->name);
 			echo $page_title;
 
 			// Add "add new" link the same way as the regular post page has
