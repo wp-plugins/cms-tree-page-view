@@ -471,7 +471,7 @@ function cms_tpv_wp_dashboard_setup() {
 		foreach ($options["dashboard"] as $one_dashboard_post_type) {
 			$post_type_object = get_post_type_object($one_dashboard_post_type);
 			$new_func_name = create_function('', "cms_tpv_dashboard('$one_dashboard_post_type');");
-			$widget_name = _x(sprintf('%1$s Tree', $post_type_object->labels->name), "name of dashboard", "cms-tree-page-view");
+			$widget_name = sprintf(_x('%1$s Tree', "name of dashboard", "cms-tree-page-view"), $post_type_object->labels->name);
 			wp_add_dashboard_widget( "cms_tpv_dashboard_widget_{$one_dashboard_post_type}", $widget_name, $new_func_name );
 		}
 	}
