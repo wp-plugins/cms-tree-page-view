@@ -5,7 +5,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: http://wordpress.org/tag/cms-tree-page-view\n"
 "POT-Creation-Date: 2012-12-26 20:37:31+00:00\n"
-"PO-Revision-Date: 2012-12-26 21:57+0100\n"
+"PO-Revision-Date: 2012-12-27 16:26+0100\n"
 "Last-Translator: Pär Thernström <par.thernstrom@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: sv_SE\n"
@@ -126,10 +126,9 @@ msgid "Settings"
 msgstr "Inställningar"
 
 #: functions.php:474
-#, fuzzy
 msgctxt "name of dashboard"
 msgid "%1$s Tree"
-msgstr "%1$s Trädvy"
+msgstr "Trädvy för %1$s"
 
 #: functions.php:502
 msgctxt "name in menu"
@@ -139,7 +138,7 @@ msgstr "Trädvy"
 #: functions.php:503
 msgctxt "title on page with tree"
 msgid "%1$s Tree View"
-msgstr "%1$s Trädvy"
+msgstr "Trädvy för %1$s"
 
 #: functions.php:523
 msgid "settings"
@@ -187,7 +186,7 @@ msgstr "Fäll ut"
 
 #: functions.php:849
 msgid "Collapse"
-msgstr "Fäll in"
+msgstr "Fäll ihop"
 
 #: functions.php:857
 msgid "Clear search"
@@ -280,7 +279,7 @@ msgstr "ID på sida"
 #: functions.php:997
 msgctxt "headline of page with tree"
 msgid "%1$s Tree View"
-msgstr "%1$s Trädvy"
+msgstr "Trädvy för %1$s"
 
 #: functions.php:1200
 msgid "Unknown user"

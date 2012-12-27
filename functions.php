@@ -306,15 +306,20 @@ function cms_admin_enqueue_scripts() {
 
 }
 
+function cms_tpv_load_textdomain() {
+	// echo "load textdomain";
+	if (is_admin()) {
+		load_plugin_textdomain('cms-tree-page-view', WP_CONTENT_DIR . "/plugins/languages", "/cms-tree-page-view/languages");
+	}
+}
 
 function cms_tpv_admin_init() {
 	
 	// DEBUG
 	//wp_enqueue_script( "jquery-hotkeys" );
 
-	load_plugin_textdomain('cms-tree-page-view', WP_CONTENT_DIR . "/plugins/languages", "/cms-tree-page-view/languages");
-
 	// add row to plugin page
+
 	add_filter( 'plugin_row_meta', 'cms_tpv_set_plugin_row_meta', 10, 2 );
 
 }
@@ -466,16 +471,20 @@ function cms_tpv_save_settings() {
  * Add widget to dashboard
  */
 function cms_tpv_wp_dashboard_setup() {
+	
+	// echo "setup dashboard";
+
 	// add dashboard to capability edit_pages only
 	if (current_user_can("edit_pages")) {
 		$options = cms_tpv_get_options();
 		foreach ($options["dashboard"] as $one_dashboard_post_type) {
 			$post_type_object = get_post_type_object($one_dashboard_post_type);
 			$new_func_name = create_function('', "cms_tpv_dashboard('$one_dashboard_post_type');");
-			$widget_name = sprintf(_x('%1$s Tree', "name of dashboard", "cms-tree-page-view"), $post_type_object->labels->name);
+			$widget_name = sprintf( _x('%1$s Tree', "name of dashboard", "cms-tree-page-view"), $post_type_object->labels->name);
 			wp_add_dashboard_widget( "cms_tpv_dashboard_widget_{$one_dashboard_post_type}", $widget_name, $new_func_name );
 		}
 	}
+
 }
 
 
@@ -508,7 +517,6 @@ function cms_tpv_admin_menu() {
 	add_submenu_page( 'options-general.php' , CMS_TPV_NAME, CMS_TPV_NAME, "administrator", "cms-tpv-options", "cms_tpv_options");
 	
 }
-
 
 /**
  * Output options page

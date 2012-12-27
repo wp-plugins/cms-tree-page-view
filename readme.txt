@@ -4,7 +4,7 @@ Donate link: http://eskapism.se/sida/donate/
 Tags: page, pages, posts, custom posts, tree, cms, dashboard, overview, drag-and-drop, rearrange, management, manage, admin
 Requires at least: 3.4
 Tested up to: 3.5
-Stable tag: 1.2
+Stable tag: 1.2.1
 
 Adds a tree view of all pages & custom posts. Get a great overview + options to drag & drop to reorder and option to add multiple pages at once.
 
@@ -104,11 +104,13 @@ Now the tree with the pages will be visible both on the dashboard and in the men
 
 == Changelog ==
 
-= 1.x =
+= 1.2.1 =
 - Fixed wrong count if WPML where activated and future or private posts existed for a language
 - Show info message if no posts found after fetching posts with AJAX
 - Updated Swedish translation
+- Updated Russian translation - hopefully it works this time!
 - Updated POT file
+- Minor language fixes, like actually loading plugin textdomain before using any texts...
 
 = 1.2 =
 - Added option to show the tree in the regular post overview screen. Makes the tree view fit into the regular workflow and GUI much better. To enable: go to settings > CMS Tree Page View > Tick the option "On post overview screen". Then go to for example the pages overview screen and in the upper right corner there will be an icon to switch between the regular list view and the tree view of this plugin.
