@@ -298,6 +298,7 @@ function cms_admin_enqueue_scripts() {
 			"Password_protected_page" => __("Password protected page", 'cms-tree-page-view'),
 			"Adding_page" => __("Adding page...", 'cms-tree-page-view'),
 			"Adding" => __("Adding ...", 'cms-tree-page-view'),
+			"No posts found" => __("No posts found.", 'cms-tree-page-view')
 		);
 		wp_localize_script( "cms_tree_page_view", 'cmstpv_l10n', $oLocale);
 
@@ -305,15 +306,20 @@ function cms_admin_enqueue_scripts() {
 
 }
 
+function cms_tpv_load_textdomain() {
+	// echo "load textdomain";
+	if (is_admin()) {
+		load_plugin_textdomain('cms-tree-page-view', WP_CONTENT_DIR . "/plugins/languages", "/cms-tree-page-view/languages");
+	}
+}
 
 function cms_tpv_admin_init() {
 	
 	// DEBUG
 	//wp_enqueue_script( "jquery-hotkeys" );
 
-	load_plugin_textdomain('cms-tree-page-view', WP_CONTENT_DIR . "/plugins/languages", "/cms-tree-page-view/languages");
-
 	// add row to plugin page
+
 	add_filter( 'plugin_row_meta', 'cms_tpv_set_plugin_row_meta', 10, 2 );
 
 }
@@ -465,16 +471,20 @@ function cms_tpv_save_settings() {
  * Add widget to dashboard
  */
 function cms_tpv_wp_dashboard_setup() {
+	
+	// echo "setup dashboard";
+
 	// add dashboard to capability edit_pages only
 	if (current_user_can("edit_pages")) {
 		$options = cms_tpv_get_options();
 		foreach ($options["dashboard"] as $one_dashboard_post_type) {
 			$post_type_object = get_post_type_object($one_dashboard_post_type);
 			$new_func_name = create_function('', "cms_tpv_dashboard('$one_dashboard_post_type');");
-			$widget_name = _x(sprintf('%1$s Tree', $post_type_object->labels->name), "name of dashboard", "cms-tree-page-view");
+			$widget_name = sprintf( _x('%1$s Tree', "name of dashboard", "cms-tree-page-view"), $post_type_object->labels->name);
 			wp_add_dashboard_widget( "cms_tpv_dashboard_widget_{$one_dashboard_post_type}", $widget_name, $new_func_name );
 		}
 	}
+
 }
 
 
@@ -500,14 +510,13 @@ function cms_tpv_admin_menu() {
 		$post_type_object = get_post_type_object($one_menu_post_type);
 		
 		$menu_name = _x("Tree View", "name in menu", "cms-tree-page-view");
-		$page_title = _x(sprintf('%1$s Tree View', $post_type_object->labels->name), "title on page with tree", "cms-tree-page-view");
+		$page_title = sprintf(_x('%1$s Tree View', "title on page with tree", "cms-tree-page-view"), $post_type_object->labels->name);
 		add_submenu_page($slug, $page_title, $menu_name, $post_type_object->cap->edit_posts, "cms-tpv-page-$one_menu_post_type", "cms_tpv_pages_page");
 	}
 
 	add_submenu_page( 'options-general.php' , CMS_TPV_NAME, CMS_TPV_NAME, "administrator", "cms-tpv-options", "cms_tpv_options");
 	
 }
-
 
 /**
  * Output options page
@@ -657,7 +666,7 @@ function cms_tpv_get_wpml_post_counts($post_type) {
 
 	global $wpdb;
 
-	$arr_statuses = array("publish", "draft", "trash");
+	$arr_statuses = array("publish", "draft", "trash", "future", "private");
 	$arr_counts = array();
 
 	foreach ($arr_statuses as $post_status) {
@@ -677,6 +686,7 @@ function cms_tpv_get_wpml_post_counts($post_type) {
 			WHERE p.post_type='{$post_type}' AND t.element_type='post_{$post_type}' {$extra_cond}
 			GROUP BY language_code
 		";
+
 		$res = $wpdb->get_results($sql);
 
 		$langs = array();
@@ -733,11 +743,11 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 		$langs = array();
 		
 		$wpml_post_counts = cms_tpv_get_wpml_post_counts($post_type);
-		
-		$post_count_all = @$wpml_post_counts["publish"][$wpml_current_lang] + @$wpml_post_counts["draft"][$wpml_current_lang];
-		$post_count_publish	= @$wpml_post_counts["publish"][$wpml_current_lang];
-		$post_count_trash	= @$wpml_post_counts["trash"][$wpml_current_lang];
-	
+
+		$post_count_all = (int) @$wpml_post_counts["private"][$wpml_current_lang] + (int) @$wpml_post_counts["future"][$wpml_current_lang] + (int) @$wpml_post_counts["publish"][$wpml_current_lang] + (int) @$wpml_post_counts["draft"][$wpml_current_lang];
+		$post_count_publish	= (int) @$wpml_post_counts["publish"][$wpml_current_lang];
+		$post_count_trash	= (int) @$wpml_post_counts["trash"][$wpml_current_lang];
+
 		foreach ($wpml_post_counts["publish"] as $one_wpml_lang => $one_wpml_lang_count) {
 			if ("all" === $one_wpml_lang) continue;
 			$lang_post_count_all 		= (int) @$wpml_post_counts["publish"][$one_wpml_lang] + (int) @$wpml_post_counts["draft"][$one_wpml_lang];
@@ -797,7 +807,7 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 						$selected = "current";
 					}
 
-					$lang_count = @$wpml_post_counts["publish"][$one_lang["language_code"]] + @$wpml_post_counts["draft"][$one_lang["language_code"]];
+					$lang_count = (int) @$wpml_post_counts["publish"][$one_lang["language_code"]] + (int) @$wpml_post_counts["draft"][$one_lang["language_code"]];
 
 					$lang_out .= "
 						<li>
@@ -811,12 +821,6 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 				echo $lang_out;
 			}
 
-		}
-
-		if (empty($pages)) {
-		
-			echo '<div class="updated fade below-h2"><p>' . __("No posts found.", 'cms-tree-page-view') . '</p></div>';
-		
 		}
 
 		if (true) {
@@ -967,6 +971,13 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 			</div>
 			<?php
 		}
+
+		if (empty($pages)) {
+		
+			echo '<div class="updated fade below-h2"><p>' . __("No posts found.", 'cms-tree-page-view') . '</p></div>';
+		
+		}
+
 		?>
 		
 	</div>
@@ -994,7 +1005,7 @@ function cms_tpv_pages_page() {
 		<?php echo get_screen_icon(); ?>
 		<h2><?php
 
-			$page_title = _x(sprintf('%1$s Tree View', $post_type_object->labels->name), "headline of page with tree", "cms-tree-page-view");
+			$page_title = sprintf(_x('%1$s Tree View', "headline of page with tree", "cms-tree-page-view"), $post_type_object->labels->name);
 			echo $page_title;
 
 			// Add "add new" link the same way as the regular post page has

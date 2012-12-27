@@ -173,6 +173,7 @@ jQuery(function($) {
 	// Globals, don't "var" them! :)
 	cms_tpv_tree = $("div.cms_tpv_container");
 	div_actions = $("div.cms_tpv_page_actions");
+	cms_tpv_message = $("div.cms_tpv_message");
 
 	// try to override css
 	var height = "20", height2 = "18", ins_height = "20";
@@ -215,6 +216,19 @@ jQuery(function($) {
 							"id": post_id
 						};
 					}
+				},
+				"success": function(data, status) {
+					
+					// If data is null or empty = show message about no nodes
+					if (data === null || !data) {
+						cms_tpv_message.html( "<p>" + cmstpv_l10n["No posts found"] + "</p>" );
+						cms_tpv_message.show();
+					} /*else {
+						cms_tpv_message.hide();
+					}*/
+
+				},
+				"error": function(data, status) {
 				}
 
 			}
@@ -288,9 +302,10 @@ function cms_tpv_mouseover(e) {
 
 /**
  * When tree is loaded: start hoverindenting stuff
+ * Is only fired when tree was loaded and contained stuff
  */
 function cms_tpv_tree_loaded(event, data) {
-
+		
 	var $container = jQuery(event.target);
 	var actions_div_doit = cms_tpv_get_page_actions_div_doit(event.target);
 
@@ -797,9 +812,10 @@ function cms_tpv_get_current_view(elm) {
  */
 function cms_tvp_set_view(view, elm) {
 
-	var $wrapper = jQuery(elm).closest(".cms_tpv_wrapper");
+	var $wrapper = jQuery(elm).closest(".cms_tpv_wrapper"),
+		div_actions_for_post_type = cms_tpv_get_page_actions_div(elm);
 
-	var div_actions_for_post_type = cms_tpv_get_page_actions_div(elm);
+	cms_tpv_message.hide();
 
 	$wrapper.append(div_actions_for_post_type);
 	$wrapper.find(".cms_tvp_view_all, .cms_tvp_view_public, .cms_tvp_view_trash").removeClass("current");
