@@ -104,6 +104,10 @@ Now the tree with the pages will be visible both on the dashboard and in the men
 
 == Changelog ==
 
+= 1.2.x =
+- Hide "inside" link if post type is draft, since you can't create new post inside a page with status draft (limitation/bug with Wordpress)
+- 
+
 = 1.2.1 =
 - Fixed wrong count if WPML where activated and future or private posts existed for a language
 - Show info message if no posts found after fetching posts with AJAX

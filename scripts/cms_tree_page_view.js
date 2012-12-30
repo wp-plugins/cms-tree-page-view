@@ -446,6 +446,7 @@ function cms_tpv_mouseover_li(e) {
 			$edit = div_actions_for_post_type.find(".cms_tpv_action_edit");
 			var editlink = $li.data("editlink");
 			$edit.attr("href", editlink);
+			$edit.removeClass("hidden");
 
 			// ..and some extras
 			div_actions_for_post_type.find(".cms_tpv_page_actions_modified_time").text($li.data("modified_time"));
@@ -459,6 +460,22 @@ function cms_tpv_mouseover_li(e) {
 			// add post id to data
 			div_actions_for_post_type.data("post_id", $li.data("post_id"));
 			
+
+			// check permissions, may the current user add page, after or inside
+			// If page has status draft then no one is allowed to add page inside
+			// div_actions_for_post_type.find(".cms_tpv_action_add_page_inside, .cms_tpv_action_add_page_inside").show();
+			div_actions_for_post_type.find(".cms_tpv_action_add_page_inside, .cms_tpv_action_add_page_inside").removeClass("hidden");
+			
+			var inside_allowed = true;
+			if ("draft" === $li.data("post_status")) {
+				inside_allowed = false;
+			}
+
+			if (!inside_allowed) {
+				//div_actions_for_post_type.find(".cms_tpv_action_add_page_inside").hide();
+			}
+
+
 			// position and show action div
 			var $a = $li.find("a");
 			var width = $a.outerWidth(true);
@@ -485,16 +502,32 @@ function cms_tpv_mouseover_li(e) {
 			
 			// check if user is allowed to edit page
 			var $cms_tpv_action_add_and_edit_page = div_actions_for_post_type.find(".cms_tpv_action_add_and_edit_page");
+			//$cms_tpv_action_add_and_edit_page.show();
+
+			// console.log( $li.data("user_can_edit_page") );
+			// console.log( $li.data("user_can_add_page_inside") );
+			// console.log( $li.data("user_can_add_page_after") );
+			div_actions_for_post_type.addClass("cms_tpv_page_actions_visible");
+
 			if ($li.data("user_can_edit_page") === "0") {
-				// nooope
-				$edit.hide();
-				$cms_tpv_action_add_and_edit_page.hide();
-			} else {
-				//$edit.show();
-				$cms_tpv_action_add_and_edit_page.show();
-				div_actions_for_post_type.addClass("cms_tpv_page_actions_visible");
+				$edit.addClass("hidden");
 			}
-			
+
+
+			$cms_tpv_add_position = div_actions_for_post_type.find(".cms_tpv_add_position");
+
+			$cms_tpv_action_add_page_after = div_actions_for_post_type.find(".cms_tpv_action_add_page_after");
+			$cms_tpv_action_add_page_after.removeClass("hidden");
+			//$cms_tpv_action_add_page_after.show();
+			if ($li.data("user_can_add_page_after") === "0") {
+				$cms_tpv_action_add_page_after.addClass("hidden");
+			}
+
+			$cms_tpv_action_add_page_inside = div_actions_for_post_type.find(".cms_tpv_action_add_page_inside");
+			$cms_tpv_action_add_page_inside.removeClass("hidden");
+			if ($li.data("user_can_add_page_inside") === "0") {
+				$cms_tpv_action_add_page_inside.addClass("hidden");
+			}
 
 		}
 	}
