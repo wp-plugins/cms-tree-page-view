@@ -6,7 +6,7 @@ Requires at least: 3.4
 Tested up to: 3.5
 Stable tag: 1.2.2
 
-Adds a tree view of all pages & custom posts. Get a great overview + options to drag & drop to reorder & option to add multiple pages at once.
+Adds a tree view of all pages & custom posts. Get a great overview + options to drag & drop to reorder & option to add multiple pages.
 
 == Description ==
 
@@ -38,7 +38,7 @@ Page management in WordPress won't get any easier than this!
 To show your pages on your website in the same order as they appear in this plugin, you must
 sort them by "menu order".
 
-´
+`
 // Example using query_posts
 $args = array(
   'orderby'=> 'menu_order',
@@ -50,7 +50,7 @@ $posts = query_posts($args);
 // Example using wp_query
 $query = new WP_Query( array( 'post_type' => 'page', 'orderby' => 'title menu_order', 'order' => 'ASC' ) );
 
-´
+`
 
 #### Screencast
 Watch this screencast to see how easy you could be managing your pages:
