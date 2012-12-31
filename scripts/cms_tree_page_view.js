@@ -500,33 +500,29 @@ function cms_tpv_mouseover_li(e) {
 				div_actions_for_post_type.removeClass("cms_tpv_page_actions_visible_from_bottom");
 			}
 			
+			div_actions_for_post_type.addClass("cms_tpv_page_actions_visible");
+			
 			// check if user is allowed to edit page
 			var $cms_tpv_action_add_and_edit_page = div_actions_for_post_type.find(".cms_tpv_action_add_and_edit_page");
-			//$cms_tpv_action_add_and_edit_page.show();
-
-			// console.log( $li.data("user_can_edit_page") );
-			// console.log( $li.data("user_can_add_page_inside") );
-			// console.log( $li.data("user_can_add_page_after") );
-			div_actions_for_post_type.addClass("cms_tpv_page_actions_visible");
-
 			if ($li.data("user_can_edit_page") === "0") {
 				$edit.addClass("hidden");
 			}
 
-
 			$cms_tpv_add_position = div_actions_for_post_type.find(".cms_tpv_add_position");
+			$cms_tpv_add_position.removeClass("hidden");
 
 			$cms_tpv_action_add_page_after = div_actions_for_post_type.find(".cms_tpv_action_add_page_after");
 			$cms_tpv_action_add_page_after.removeClass("hidden");
-			//$cms_tpv_action_add_page_after.show();
 			if ($li.data("user_can_add_page_after") === "0") {
 				$cms_tpv_action_add_page_after.addClass("hidden");
+				$cms_tpv_add_position.addClass("hidden");
 			}
 
 			$cms_tpv_action_add_page_inside = div_actions_for_post_type.find(".cms_tpv_action_add_page_inside");
 			$cms_tpv_action_add_page_inside.removeClass("hidden");
 			if ($li.data("user_can_add_page_inside") === "0") {
 				$cms_tpv_action_add_page_inside.addClass("hidden");
+				$cms_tpv_add_position.addClass("hidden");
 			}
 
 		}

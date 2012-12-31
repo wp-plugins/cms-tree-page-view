@@ -4,7 +4,7 @@
 /**
  * Example how to use action cms_tree_page_view_post_can_edit to modify if a user can edit the page/post
  */
-
+/*
 add_action("cms_tree_page_view_post_can_edit", function($can_edit, $post_id) {
 	
 	if ($post_id === 163) $can_edit = FALSE;
@@ -12,7 +12,6 @@ add_action("cms_tree_page_view_post_can_edit", function($can_edit, $post_id) {
 	return $can_edit;
 
 }, 10, 2);
-
 
 
 add_action("cms_tree_page_view_post_user_can_add_inside", function($can_edit, $post_id) {
@@ -30,7 +29,7 @@ add_action("cms_tree_page_view_post_user_can_add_after", function($can_edit, $po
 	return $can_edit;
 
 }, 10, 2);
-
+*/
 
 /**
  * Use the ajax action-thingie to catch our form with new pages

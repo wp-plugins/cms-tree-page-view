@@ -4,13 +4,14 @@ Donate link: http://eskapism.se/sida/donate/
 Tags: page, pages, posts, custom posts, tree, cms, dashboard, overview, drag-and-drop, rearrange, management, manage, admin
 Requires at least: 3.4
 Tested up to: 3.5
-Stable tag: 1.2.1
+Stable tag: 1.2.2
 
-Adds a tree view of all pages & custom posts. Get a great overview + options to drag & drop to reorder and option to add multiple pages at once.
+Adds a tree view of all pages & custom posts. Get a great overview + options to drag & drop to reorder & option to add multiple pages at once.
 
 == Description ==
 
 Adds a CMS-like tree overview of all your pages and custom posts to WordPress - much like the view often found in a page-focused CMS.
+
 Within this tree you can edit pages, view pages, add pages, search pages, and drag and drop pages to rearrange the order.
 
 CMS Tree Page View is a good alternative to plugins such as pageMash, WordPress Page Tree
@@ -104,9 +105,9 @@ Now the tree with the pages will be visible both on the dashboard and in the men
 
 == Changelog ==
 
-= 1.2.x =
+= 1.2.2 =
 - Hide "inside" link if post type is draft, since you can't create new post inside a page with status draft (limitation/bug with Wordpress)
-- 
+- Added actions so other developers or plugins can control what pages/posts that are editiable and so on. Added filters are: cms_tree_page_view_post_can_edit, cms_tree_page_view_post_user_can_add_inside, cms_tree_page_view_post_user_can_add_after
 
 = 1.2.1 =
 - Fixed wrong count if WPML where activated and future or private posts existed for a language
