@@ -39,6 +39,11 @@
 .cms-tpv-subsubsub {
 	margin-top: 8px;
 	color: #666;
+	margin-bottom: 0;
+}
+
+.cms_tvp_switch_langs + .cms-tpv-subsubsub {
+	margin-top: 0;
 }
 
 .cms-tpv-subsubsub li {
@@ -292,23 +297,39 @@ p.cms_tpv_action_edit_and_view
 	margin-top: 0em;
 }
 .cms_tpv_wrapper .cms_tpv_page_actions a {
-	display: inline;
 	background: transparent;
 	text-decoration: underline;
 	color: #21759B;
 	font-weight: normal;
 	padding: 0 .5em 0 0;
 	margin-right: .2em;
-	border-right: 1px solid #aaa;
-}
-.cms_tpv_wrapper .cms_tpv_page_actions a:last-child {
-	border: none;
 }
 
-.cms_tpv_wrapper .cms_tpv_page_actions a:hover
- {
+.cms_tpv_wrapper .cms_tpv_page_actions .cms_tpv_action_edit_and_view a {
+	border-right: 1px solid #aaa;
+}
+
+.cms_tpv_wrapper .cms_tpv_page_actions .cms_tpv_action_edit_and_view a:not(.hidden):last-of-type {
+	border-right: none;
+}
+
+.cms_tpv_wrapper .cms_tpv_page_actions a:hover {
 	color: #d54e21;
 	background-color: transparent;
+}
+
+/* applied to all (aka "first") */
+.cms_tpv_wrapper .cms_tpv_page_actions .cms_tpv_action_add_and_edit_page a:not(.hidden) {
+	/*background: red;*/
+	padding: 0;
+	margin: 0;
+}
+/* tricky way to get non first not hidden */
+.cms_tpv_wrapper .cms_tpv_page_actions .cms_tpv_action_add_and_edit_page a:not(.hidden) ~ a:not(.hidden) {
+	/*background: yellow;*/
+	border-left: 1px solid #aaa;
+	padding-left: .5em;
+	margin-left: .2em;
 }
 
 .cms_tpv_page_actions ul {
@@ -454,6 +475,10 @@ for posts overview enabled mode
 
 .view-switch.view-switch-cstpv-icon-added {
 	padding-right: 0;
+}
+
+.view-switch-cstpv-icon-added a {
+	display: inline-block;
 }
 
 #view-switch-tree {
