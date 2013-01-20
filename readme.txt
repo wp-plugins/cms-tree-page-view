@@ -105,6 +105,11 @@ Now the tree with the pages will be visible both on the dashboard and in the men
 
 == Changelog ==
 
+= 1.2.x =
+- Removed an ugly pixel in the tree icon
+- Minor CSS changes to tree icon
+- Updated French translation
+
 = 1.2.2 =
 - Hide "inside" link if post type is draft, since you can't create new post inside a page with status draft (limitation/bug with Wordpress)
 - Added actions so other developers or plugins can control what pages/posts that are editiable and so on. Added filters are: cms_tree_page_view_post_can_edit, cms_tree_page_view_post_user_can_add_inside, cms_tree_page_view_post_user_can_add_after
