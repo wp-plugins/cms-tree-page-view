@@ -105,6 +105,10 @@ Now the tree with the pages will be visible both on the dashboard and in the men
 
 == Changelog ==
 
+= 1.2.x =
+- Small design changes for the icons in the post overview screen
+- Added actions to check permissions when adding pages with AJAX
+
 = 1.2.3 =
 - Removed an ugly pixel in the tree icon
 - Minor CSS changes to tree icon

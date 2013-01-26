@@ -92,12 +92,25 @@ function cms_tpv_add_pages() {
 	// and then all pages after that one will get it's menu_order 
 	// increased by the same number as the number of new posts we're gonna add
 	
+	$ok_to_continue_by_permission = TRUE;
+	$post_type_object = get_post_type_object($ref_post->post_type);
+
 	$post_parent = 0;
 	if ("after" === $post_position) {
 		$post_parent = $ref_post->post_parent;
+		$ok_to_continue_by_permission = apply_filters("cms_tree_page_view_post_user_can_add_after", current_user_can( $post_type_object->cap->create_posts, $ref_post_id), $ref_post_id);	
 	} elseif ("inside" === $post_position) {
 		$post_parent = $ref_post->ID;
+		$ok_to_continue_by_permission = apply_filters("cms_tree_page_view_post_user_can_add_inside", current_user_can( $post_type_object->cap->create_posts, $ref_post_id), $ref_post_id);
 	}
+
+	if ( ! $ok_to_continue_by_permission ) {
+		wp_die( __( 'Cheatin&#8217; uh?' ) );
+		return FALSE;
+	}
+
+//	$user_can_edit_page = apply_filters("cms_tree_page_view_post_can_edit", current_user_can( $post_type_object->cap->edit_post, $ref_post_id), $ref_post_id);
+
 
 
 	/*
@@ -136,11 +149,11 @@ function cms_tpv_add_pages() {
 						"menu_order" => $one_post->menu_order + $arr_post_names_count
 					);
 					$return_id = wp_update_post($post_update);
-					if (0 ===$return_id) die("Error: could not update post with id " . $post_update->ID);
+					if (0 ===$return_id) die( "Error: could not update post with id " . $post_update->ID . "<br>Technical details: " . print_r($post_update) );
 
 				}
 
-				if ( ! $has_passed_ref_post && $ref_post->ID === $one_post->ID) {
+				if ( ! $has_passed_ref_post && $ref_post->ID === $one_post->ID ) {
 					$has_passed_ref_post = TRUE;
 				}			
 
@@ -491,7 +504,7 @@ function cms_tpv_save_settings() {
 		$options["dashboard"] = (array) $_POST["post-type-dashboard"];
 		$options["menu"] = (array) $_POST["post-type-menu"];
 		$options["postsoverview"] = (array) $_POST["post-type-postsoverview"];
-		
+
 		update_option('cms_tpv_options', $options); // enable this to show box
 
 	}
@@ -743,7 +756,7 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 
 	global $sitepress, $cms_tpv_view, $wpdb;
 
-	if (!$post_type) {
+	if ( ! $post_type ) {
 		$post_type = cms_tpv_get_selected_post_type();
 	}
 	
@@ -1207,8 +1220,8 @@ function cms_tpv_print_childs($pageID, $view = "all", $arrOpenChilds = null, $po
 
 			$arr_page_css_styles = array();
 			$user_can_edit_page = apply_filters("cms_tree_page_view_post_can_edit", current_user_can( $post_type_object->cap->edit_post, $page_id), $page_id);
-			$user_can_add_inside = apply_filters("cms_tree_page_view_post_user_can_add_inside", current_user_can( $post_type_object->cap->edit_post, $page_id), $page_id);
-			$user_can_add_after = apply_filters("cms_tree_page_view_post_user_can_add_after", current_user_can( $post_type_object->cap->edit_post, $page_id), $page_id);	
+			$user_can_add_inside = apply_filters("cms_tree_page_view_post_user_can_add_inside", current_user_can( $post_type_object->cap->create_posts, $page_id), $page_id);
+			$user_can_add_after = apply_filters("cms_tree_page_view_post_user_can_add_after", current_user_can( $post_type_object->cap->create_posts, $page_id), $page_id);	
 
 			if ( $user_can_edit_page ) {
 				$arr_page_css_styles[] = "cms_tpv_user_can_edit_page_yes";
@@ -1424,6 +1437,9 @@ function cms_tpv_get_childs() {
 	exit;
 }
 
+/**
+ * @TODO: check if this is used any longer? If not then delete it!
+ */
 function cms_tpv_add_page() {
 	global $wpdb;
 
@@ -1679,7 +1695,8 @@ function cms_tpv_install() {
 	// set to current version
 	update_option('cms_tpv_version', CMS_TPV_VERSION);
 }
-#cms_tpv_install();
+
+// cms_tpv_install();
 
 /**
  * setup some defaults
