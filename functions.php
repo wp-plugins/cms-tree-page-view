@@ -540,22 +540,31 @@ function cms_tpv_dashboard($post_type = "") {
 	cms_tpv_print_common_tree_stuff($post_type);
 }
 
+// Add items to the wp admin menu
 function cms_tpv_admin_menu() {
 
 	// add 
 	$options = cms_tpv_get_options();
+
 	foreach ($options["menu"] as $one_menu_post_type) {
+		
 		// post is a special one.
 		if ($one_menu_post_type == "post") {
 			$slug = "edit.php";
 		} else {
 			$slug = "edit.php?post_type=$one_menu_post_type";
 		}
-		$post_type_object = get_post_type_object($one_menu_post_type);
 		
-		$menu_name = _x("Tree View", "name in menu", "cms-tree-page-view");
-		$page_title = sprintf(_x('%1$s Tree View', "title on page with tree", "cms-tree-page-view"), $post_type_object->labels->name);
-		add_submenu_page($slug, $page_title, $menu_name, $post_type_object->cap->edit_posts, "cms-tpv-page-$one_menu_post_type", "cms_tpv_pages_page");
+		$post_type_object = get_post_type_object($one_menu_post_type);
+
+		// Only try to add menu if we got a valid post type object
+		// I think you can get a notice message here if you for example have enabled
+		// the menu for a custom post type that you later on remove?
+		if ( ! empty( $post_type_object ) ) {
+			$menu_name = _x("Tree View", "name in menu", "cms-tree-page-view");
+			$page_title = sprintf(_x('%1$s Tree View', "title on page with tree", "cms-tree-page-view"), $post_type_object->labels->name);
+			add_submenu_page($slug, $page_title, $menu_name, $post_type_object->cap->edit_posts, "cms-tpv-page-$one_menu_post_type", "cms_tpv_pages_page");
+		}
 	}
 
 	add_submenu_page( 'options-general.php' , CMS_TPV_NAME, CMS_TPV_NAME, "administrator", "cms-tpv-options", "cms_tpv_options");

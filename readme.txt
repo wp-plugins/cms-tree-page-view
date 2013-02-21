@@ -105,6 +105,9 @@ Now the tree with the pages will be visible both on the dashboard and in the men
 
 == Changelog ==
 
+= 1.2.x =
+- Fixed a notice warning that could appear when adding the menu
+
 = 1.2.4 =
 - Small design changes for the icons in the post overview screen
 - Added actions to check permissions when adding pages with AJAX
