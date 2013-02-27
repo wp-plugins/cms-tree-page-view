@@ -502,7 +502,7 @@ function cms_tpv_save_settings() {
 
 		$options = array();
 		$options["dashboard"] = (array) $_POST["post-type-dashboard"];
-		$options["menu"] = (array) $_POST["post-type-menu"];
+		$options["menu"] = isset( $_POST["post-type-menu"] ) ? (array) $_POST["post-type-menu"] : array();
 		$options["postsoverview"] = (array) $_POST["post-type-postsoverview"];
 
 		update_option('cms_tpv_options', $options); // enable this to show box
@@ -524,8 +524,10 @@ function cms_tpv_wp_dashboard_setup() {
 		foreach ($options["dashboard"] as $one_dashboard_post_type) {
 			$post_type_object = get_post_type_object($one_dashboard_post_type);
 			$new_func_name = create_function('', "cms_tpv_dashboard('$one_dashboard_post_type');");
-			$widget_name = sprintf( _x('%1$s Tree', "name of dashboard", "cms-tree-page-view"), $post_type_object->labels->name);
-			wp_add_dashboard_widget( "cms_tpv_dashboard_widget_{$one_dashboard_post_type}", $widget_name, $new_func_name );
+			if ( ! empty( $post_type_object ) ) {
+				$widget_name = sprintf( _x('%1$s Tree', "name of dashboard", "cms-tree-page-view"), $post_type_object->labels->name);
+				wp_add_dashboard_widget( "cms_tpv_dashboard_widget_{$one_dashboard_post_type}", $widget_name, $new_func_name );
+			}
 		}
 	}
 
