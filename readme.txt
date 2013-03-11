@@ -109,7 +109,7 @@ Now the tree with the pages will be visible both on the dashboard and in the men
 = 1.2.5 =
 - Fixed some notice warnings
 - Added Finnish translation
-- Fixed a security issue. Thanks to Julio POTIER <a href="http://secu.boiteaweb.fr/">http://secu.boiteaweb.fr/</a>) for finding and reporting.
+- Fixed a security issue. Thanks to Julio POTIER (<a href="http://secu.boiteaweb.fr/">http://secu.boiteaweb.fr/</a>) for finding and reporting.
 - Added nonce checks for options page and for adding new pages
 
 = 1.2.4 =
