@@ -61,6 +61,11 @@ function cms_tpv_add_pages() {
 	$ref_post_id	= (int) $_POST["ref_post_id"];
 	$lang 			= $_POST["lang"];
 
+	// Check nonce
+	if ( ! check_admin_referer("cms-tpv-add-pages") ) {
+		wp_die( __( 'Cheatin&#8217; uh?' ) );
+	}
+
 	// If lang variable is set, then set some more wpml-related post/get-variables
 	if ($lang) {
 		// post seems to fix creating new posts in selcted lang
@@ -449,7 +454,7 @@ function cmstpv_filter_views_edit_postsoverview($filter_var) {
 
 		$mode = "list";
 		$class = isset($_GET["mode"]) && $_GET["mode"] != $mode ? " class='cmstpv_add_list_view' " : " class='cmstpv_add_list_view current' ";
-		$title = __("List View");
+		$title = __("List View"); /* translation not missing - exists in wp */
 		$wp_list_a = "<a href='" . esc_url( add_query_arg( 'mode', $mode, $_SERVER['REQUEST_URI'] ) ) . "' $class><img id='view-switch-$mode' src='" . esc_url( includes_url( 'images/blank.gif' ) ) . "' width='20' height='20' title='$title' alt='$title' /></a>\n";
 
 	}
@@ -498,7 +503,7 @@ function cms_tpv_set_plugin_row_meta($links, $file) {
  */
 function cms_tpv_save_settings() {
 	
-	if (isset($_POST["cms_tpv_action"]) && $_POST["cms_tpv_action"] == "save_settings") {
+	if (isset($_POST["cms_tpv_action"]) && $_POST["cms_tpv_action"] == "save_settings" && check_admin_referer('update-options')) {
 
 		$options = array();
 		$options["dashboard"] = (array) $_POST["post-type-dashboard"];
@@ -971,6 +976,7 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 
 						<input type="hidden" name="action" value="cms_tpv_add_pages">
 						<input type="hidden" name="ref_post_id" value="">
+						<?php wp_nonce_field("cms-tpv-add-pages") ?>
 						
 						<!-- lang for wpml -->
 						<input type="hidden" name="lang" value="">
@@ -982,7 +988,7 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 							<div>
 								<!-- Pages<br> -->
 								<ul class="cms_tpv_action_add_doit_pages">
-									<li><span></span><input placeholder="<?php _e("Enter title here") ?>" type="text" name="cms_tpv_add_new_pages_names[]"></li>
+									<li><span></span><input placeholder="<?php _e("Enter title here") /* translation not missing - exists in wp */ ?>" type="text" name="cms_tpv_add_new_pages_names[]"></li>
 								</ul>
 							</div>
 
@@ -1364,6 +1370,14 @@ function cms_tpv_get_childs() {
 	$view = $_GET["view"]; // all | public | trash
 	$post_type = (isset($_GET["post_type"])) ? $_GET["post_type"] : null;
 	$search = (isset($_GET["search_string"])) ? trim($_GET["search_string"]) : ""; // exits if we're doing a search
+
+	// Check if user is allowed to get the list. For example subscribers should not be allowed to
+	// Use same capability that is required to add the menu
+	$post_type_object = get_post_type_object($post_type);
+	if ( ! current_user_can( $post_type_object->cap->edit_posts ) ) {
+		die( __( 'Cheatin&#8217; uh?' ) );
+	}
+
 	if ($action) {
 	
 		if ($search) {
