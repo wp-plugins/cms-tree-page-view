@@ -1,306 +1,296 @@
-# Translation of the WordPress plugin   by .
-# Copyright (C) 2010
+# Copyright (C) 2012
 # This file is distributed under the same license as the  package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
-#
+# Translators:
+# Jan-Erik Finlander <janerik.finlander@gmail.com>, 2013.
 msgid ""
 msgstr ""
-"Project-Id-Version: \n"
+"Project-Id-Version: CMS Tree Page View\n"
 "Report-Msgid-Bugs-To: http://wordpress.org/tag/cms-tree-page-view\n"
 "POT-Creation-Date: 2012-12-26 20:37:31+00:00\n"
-"PO-Revision-Date: 2013-01-07 22:35+0100\n"
-"Last-Translator: Jean-Christophe Brebion <pro@jcbrebion.com>\n"
-"Language-Team: \n"
-"Language: fr_FR\n"
+"PO-Revision-Date: 2013-03-03 07:23+0000\n"
+"Last-Translator: Jan-Erik Finlander <janerik.finlander@gmail.com>\n"
+"Language-Team: Finnish (http://www.transifex.com/projects/p/cms-tree-page-view/language/fi/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.5.4\n"
+"Language: fi\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: functions.php:272
 msgid "Enter title of new page"
-msgstr "Entrez le titre de la page"
+msgstr "Kirjoita uuden sivun otsikko "
 
 #: functions.php:273
 msgid "child pages"
-msgstr "Pages sous cette page"
+msgstr "Alasivut"
 
 #: functions.php:274 functions.php:887
 msgid "Edit page"
-msgstr "Modifier la page"
+msgstr "Muokkaa sivu"
 
 #: functions.php:275 functions.php:888
 msgid "View page"
-msgstr "Voir la page"
+msgstr "Näytä sivu"
 
 #: functions.php:276 functions.php:887
 msgid "Edit"
-msgstr "Modifier"
+msgstr "Muokkaa"
 
 #: functions.php:277 functions.php:888
 msgid "View"
-msgstr "Voir"
+msgstr "Näytä"
 
 #: functions.php:278
 msgid "Add page"
-msgstr "Ajouter une page"
+msgstr "Lisää sivu"
 
 #: functions.php:279 functions.php:896
 msgid "Add new page after"
-msgstr "Ajouter une page après cette page"
+msgstr "Lisää uusi sivu tämän jälkeen"
 
 #: functions.php:280
 msgid "after"
-msgstr "après"
+msgstr "jälkeen"
 
 #: functions.php:281
 msgid "inside"
-msgstr "sous cette page"
+msgstr "sisällä"
 
 #: functions.php:282
 msgid "Sorry, can't create a sub page to a page with status \"draft\"."
-msgstr ""
-"Désolé, impossible de créer une page à l'intérieur d'une page ayant le "
-"statut de brouillon."
+msgstr "Valitettavasti ei voi luoda alasivun, sivu status on \"luonnos\"."
 
 #: functions.php:283
 msgid "Sorry, can't create a sub page to a page with status \"trash\"."
-msgstr ""
-"Désolé, impossible de créer une page à l'intérieur d'une page située dans la "
-"corbeille."
+msgstr "Valitettavasti ei voi luoda alasivun, sivun status on \"roskis\". "
 
 #: functions.php:284
 msgid "Sorry, can't create a page after a page with status \"trash\"."
-msgstr ""
-"Désolé, impossible de créer une page après une page située dans la corbeille."
+msgstr "Valitettavasti ei voi luoda sivun, \"roskis\" statuksen sivun  jälkeen. "
 
 #: functions.php:285 functions.php:901
 msgid "Add new page inside"
-msgstr "Ajouter une page à l'intérieur de cette page"
+msgstr "Lisää uusi sisäinen sivu "
 
 #: functions.php:286 functions.php:292
 msgid "draft"
-msgstr "brouillon"
+msgstr "luonnos"
 
 #: functions.php:287 functions.php:293
 msgid "future"
-msgstr "planifié"
+msgstr "tuleva"
 
 #: functions.php:288 functions.php:294
 msgid "protected"
-msgstr "protégé"
+msgstr "suojattu"
 
 #: functions.php:289 functions.php:295 functions.php:1235
 msgid "pending"
-msgstr "en attente"
+msgstr "vireillä"
 
 #: functions.php:290 functions.php:296
 msgid "private"
-msgstr "privé"
+msgstr "privatti"
 
 #: functions.php:291 functions.php:297
 msgid "trash"
-msgstr "corbeille"
+msgstr "roskis"
 
 #: functions.php:298
 msgid "Password protected page"
-msgstr "Page protégée par mot de passe"
+msgstr "salasanalla suojattu sivu"
 
 #: functions.php:299
 msgid "Adding page..."
-msgstr "Ajout de la page…"
+msgstr "Sivua lisätään... "
 
 #: functions.php:300
 msgid "Adding ..."
-msgstr "Ajout…"
+msgstr "Lisätään..."
 
 #: functions.php:393
 msgid "Tree View"
-msgstr "Affichage en arborescence"
+msgstr "Hakemisto"
 
 #: functions.php:402
 msgid "List View"
-msgstr "Affichage en liste"
+msgstr "Lista"
 
 #: functions.php:438
 msgid "Settings"
-msgstr "Paramètres"
+msgstr "Asetukset"
 
 #: functions.php:474
 msgctxt "name of dashboard"
 msgid "%1$s Tree"
-msgstr "Arborescence des %1$s"
+msgstr "%1$s Hakemisto"
 
 #: functions.php:502
 msgctxt "name in menu"
 msgid "Tree View"
-msgstr "Arborescence"
+msgstr "Hakemisto"
 
 #: functions.php:503
 msgctxt "title on page with tree"
 msgid "%1$s Tree View"
-msgstr "Vue de l'arborescence des %1$s"
+msgstr "%1$s Hakemisto"
 
 #: functions.php:523
 msgid "settings"
-msgstr "paramètres"
+msgstr "asetukset"
 
 #: functions.php:529
 msgid "Select where to show a tree for pages and custom post types"
-msgstr ""
-"Sélectionnez où vous souhaitez afficher l'arborescence pour les pages et "
-"types de contenus personnalisés"
+msgstr "Valitse, missä näytetään sivuhakemisto ja omat artikkelit"
 
 #: functions.php:573
 msgid "On dashboard"
-msgstr "Sur la tableau de bord"
+msgstr "Työpöydällä"
 
 #: functions.php:577
 msgid "In menu"
-msgstr "Dans le menu"
+msgstr "Valikossa"
 
 #: functions.php:581
 msgid "On post overview screen"
-msgstr "Sur l'écran de gestion des articles"
+msgstr "Yleiskatsaus näytöllä"
 
 #: functions.php:599
 msgid "Save Changes"
-msgstr "Enregistrer"
+msgstr "Tallenna muutokset"
 
 #: functions.php:818
 msgid "No posts found."
-msgstr "Aucun article trouvé."
+msgstr "Artikkelia ei löytynyt."
 
 #: functions.php:830
 msgid "All"
-msgstr "Toutes les pages"
+msgstr "Kaikki"
 
 #: functions.php:835
 msgid "Public"
-msgstr "Pages publiées"
+msgstr "Julkinen"
 
 #: functions.php:840
 msgid "Trash"
-msgstr "Corbeille"
+msgstr "Roskis"
 
 #: functions.php:848
 msgid "Expand"
-msgstr "Dérouler"
+msgstr "Laajenna"
 
 #: functions.php:849
 msgid "Collapse"
-msgstr "Refermer"
+msgstr "Supista"
 
 #: functions.php:857
 msgid "Clear search"
-msgstr "Effacer la recherche"
+msgstr "Tyhjennä haku"
 
 #: functions.php:858
 msgid "Search"
-msgstr "Rechercher"
+msgstr "Hae"
 
 #: functions.php:859
 msgid "Searching..."
-msgstr "Recherche en cours"
+msgstr "Heataan..."
 
 #: functions.php:860
 msgid "Nothing found."
-msgstr "Aucun résultat."
+msgstr "Ei löytynyt mitään."
 
 #: functions.php:867
 msgid "Loading..."
-msgstr "Chargement en cours"
+msgstr "Ladataan..."
 
 #: functions.php:872
 msgid "Search: no pages found"
-msgstr "Recherche: aucune page trouvée"
+msgstr "Haku: sivuja ei löytynyt"
 
 #: functions.php:875
 msgid "Loading tree"
-msgstr "Chargement de l'arborescence"
+msgstr "Ladataan hakemisto"
 
 #: functions.php:896 functions.php:932
 msgid "After"
-msgstr "Après"
+msgstr "Jälkeen"
 
 #: functions.php:901 functions.php:933
 msgid "Inside"
-msgstr "À l'intérieur"
+msgstr "Sisällä"
 
 #: functions.php:905
 msgid "Can not create page inside of a page with draft status"
-msgstr ""
-"Impossible de créer une page à l'intérieur d'une page ayant le statut de "
-"brouillon"
+msgstr "Valitettavasti ei voi luoda alasivun, sivu on luonnos tilassa"
 
 #: functions.php:921
 msgid "Add page(s)"
-msgstr "Ajoutez une ou plusieurs pages"
+msgstr "Lisää sivu(ja)"
 
 #: functions.php:926
 msgid "Enter title here"
-msgstr "Entrez un titre ici"
+msgstr "Kirjoita otsikko tähän"
 
 #: functions.php:931
 msgid "Position"
-msgstr "Emplacement"
+msgstr "Sijainti"
 
 #: functions.php:938
 msgid "Status"
-msgstr "Statut"
+msgstr "Tila"
 
 #: functions.php:939
 msgid "Draft"
-msgstr "Brouillon"
+msgstr "Luonnos"
 
 #: functions.php:940
 msgid "Published"
-msgstr "Publié"
+msgstr "Julkaistu"
 
 #: functions.php:944
 msgid "Add"
-msgstr "Ajouter"
+msgstr "Lisää"
 
 #: functions.php:945
 msgid "or"
-msgstr "ou"
+msgstr "tai"
 
 #: functions.php:946
 msgid "cancel"
-msgstr "annuler"
+msgstr "peruuttaa"
 
 #: functions.php:956
 msgid "Last modified"
-msgstr "Dernière modification"
+msgstr "Viimeksi muokattu"
 
 #: functions.php:958
 msgid "by"
-msgstr "par"
+msgstr "- "
 
 #: functions.php:961
 msgid "Page ID"
-msgstr "ID de la page"
+msgstr "Sivun ID"
 
 #: functions.php:997
 msgctxt "headline of page with tree"
 msgid "%1$s Tree View"
-msgstr "Vue de l'arborescence des %1$s"
+msgstr "%1$s Hakemisto"
 
 #: functions.php:1200
 msgid "Unknown user"
-msgstr "Utilisateur inconnu"
+msgstr "Tuntematon käyttäjä"
 
 #: functions.php:1205
 msgid "<Untitled page>"
-msgstr "<Sans-titre>"
+msgstr "<Sivun otsikko>"
 
 #: functions.php:1225
 msgid "Comments"
-msgstr "Commentaires"
+msgstr "Kommentit"
 
 #: functions.php:1232
 msgid "%s pending"
-msgstr "%s en attente"
+msgstr "%s vireillä"
 
 #: functions.php:1242
 msgctxt "comment count"
@@ -319,78 +309,54 @@ msgstr "%"
 
 #: functions.php:1428
 msgid "New page"
-msgstr "Nouvelle page"
+msgstr "Uusi sivu"
 
 #: functions.php:1618
 msgid "Thanks for using my plugin"
-msgstr "Merci d'utiliser mon plugin"
+msgstr "Kiitos kun käytät minun plugari"
 
 #: functions.php:1620
 msgid ""
 "Hi there! I just wanna says thanks for using my plugin. I hope you like it "
 "as much as I do."
-msgstr ""
-"Bonjour! Je voulais simplement vous remercier d'utiliser mon plugin. "
-"J'espère que vous l'appréciez autant que moi."
+msgstr "Hei siellä! Haluan vain sanoo kiitos kun käytät minun plugarin. Toivottavasti pidät siitä yhtä paljon kuin minä."
 
 #: functions.php:1621
 msgid "/Pär Thernström - plugin creator"
-msgstr "Pär Thernström - créateur du plugin"
+msgstr "/ Plugarin luoja"
 
 #: functions.php:1623
 msgid "I like this plugin<br>– how can I thank you?"
-msgstr "J'adore ce plugin<br>– comment puis-je vous remercier?"
+msgstr "Pidän tätä plugaria <br> - miten voin kiittää sinua?"
 
 #: functions.php:1624
 msgid "There are serveral ways for you to show your appreciation:"
-msgstr "Il y a plusieurs moyens de montrer votre appréciation:"
+msgstr "On olemassa useita tapoja, joilla voit näyttää arvostavasi:"
 
 #: functions.php:1626
 msgid ""
 "<a href=\"%1$s\">Give it a nice review</a> over at the WordPress Plugin "
 "Directory"
-msgstr ""
-"<a href=\"%1$s\">Écrire un avis positif</a> sur l'annuaire des plugins "
-"WordPress"
+msgstr "<a href=\"%1$s\"> Anna joku kiva arvostelu </ a> WordPress Plugin Directory kautta"
 
 #: functions.php:1627
 msgid "<a href=\"%1$s\">Give a donation</a> – any amount will make me happy"
-msgstr "<a href=\"%1$s\">Envoyer un don</a> – quel que soit le montant"
+msgstr "<a href=\"%1$s\"> Anna lahjoitus </ a> - minkä määrä tahansa teksi minut onnelliseksi"
 
 #: functions.php:1628
 msgid ""
 "<a href=\"%1$s\">Post a nice tweet</a> or make a nice blog post about the "
 "plugin"
-msgstr ""
-"<a href=\"%1$s\">Poster un tweet</a> ou rédiger un article de blog à propos "
-"du plugin"
+msgstr "<a href=\"%1$s\"> Kirjoita kiva Tweetti </ a> tai kerro tästä hienosta plugarista sun blogissa"
 
 #: functions.php:1631
 msgid "Support"
-msgstr "Support"
+msgstr "Tuki"
 
 #: functions.php:1632
 msgid "Plese see the <a href=\"%1$s\">support forum</a> for help."
-msgstr ""
-"Veuillez consulter le <a href=\"%1$s\">forum de support</a> pour obtenir de "
-"l'aide."
+msgstr "Katso <a href=\"%1$s\"> tukifoorumi </ a> jos tarvitset apua."
 
 #: functions.php:1636
 msgid "Hide until next upgrade"
-msgstr "Masquer jusqu'à la prochaine mise à jour"
-
-#~ msgid "Show tree"
-#~ msgstr "Voir l'arborescence"
-
-#~ msgid "under the pages menu"
-#~ msgstr "sous les pages du menu"
-
-#~ msgid ""
-#~ "No pages found. Maybe you want to <a href='post-new.php?"
-#~ "post_type=page'>add a new page</a>?"
-#~ msgstr ""
-#~ "Aucune page trouvée. Peut-être voulez-vous <a href='post-new.php?"
-#~ "post_type=page'>ajouter une page</a>?"
-
-#~ msgid "Click to edit. Drag to move."
-#~ msgstr "Cliquez pour modifier, vous pouvez aussi déplacer la page"
+msgstr "Piilota seuraavan päivitykseen asti"
