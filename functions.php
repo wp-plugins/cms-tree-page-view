@@ -861,7 +861,7 @@ function cms_tpv_print_common_tree_stuff($post_type = "") {
 	if (! $json_data) $json_data = '{}';
 	?>
 	<script type="text/javascript">
-		cms_tpv_jsondata.<?php echo $post_type ?> = <?php echo $json_data ?>;
+		cms_tpv_jsondata["<?php echo $post_type ?>"] = <?php echo $json_data ?>;
 	</script>
 	
 	<div class="cms_tpv_wrapper">
