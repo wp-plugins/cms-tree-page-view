@@ -1151,7 +1151,7 @@ function cms_tpv_get_pages($args = null) {
 
 	// does not work with plugin ALO EasyMail Newsletter
 	remove_filter('get_pages','ALO_exclude_page');
-	
+
 	#do_action_ref_array('parse_query', array(&$this));
 	#print_r($get_posts_args);
 
@@ -1248,6 +1248,18 @@ function cms_tpv_print_childs($pageID, $view = "all", $arrOpenChilds = null, $po
 				$post_author = __("Unknown user", 'cms-tree-page-view');
 			}
 			
+			// does not work with wpTypography and the filter it applies to the_title
+			// didn't find a variable with it's class, so unsetting the filter "manually"
+			if ( class_exists("wpTypography") ) {
+				if ( isset( $GLOBALS['wp_filter']['the_title'][9999] ) ) {
+					foreach ( $GLOBALS['wp_filter']['the_title'][9999] as $key => $val ) {
+						if ( "object" === gettype( $val["function"][0] ) && "wpTypography" === get_class( $val["function"][0] ) ) {
+							unset($GLOBALS['wp_filter']['the_title'][9999][$key]);
+						}
+					}
+				}
+			}
+
 			$title = get_the_title($onePage->ID); // so hooks and stuff will do their work
 			if (empty($title)) {
 				$title = __("<Untitled page>", 'cms-tree-page-view');
