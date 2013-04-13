@@ -1248,23 +1248,10 @@ function cms_tpv_print_childs($pageID, $view = "all", $arrOpenChilds = null, $po
 				$post_author = __("Unknown user", 'cms-tree-page-view');
 			}
 			
-			// does not work with wpTypography and the filter it applies to the_title
-			// didn't find a variable with it's class, so unsetting the filter "manually"
-			if ( class_exists("wpTypography") ) {
-				if ( isset( $GLOBALS['wp_filter']['the_title'][9999] ) ) {
-					foreach ( $GLOBALS['wp_filter']['the_title'][9999] as $key => $val ) {
-						if ( "object" === gettype( $val["function"][0] ) && "wpTypography" === get_class( $val["function"][0] ) ) {
-							unset($GLOBALS['wp_filter']['the_title'][9999][$key]);
-						}
-					}
-				}
-			}
-
 			$title = get_the_title($onePage->ID); // so hooks and stuff will do their work
 			if (empty($title)) {
 				$title = __("<Untitled page>", 'cms-tree-page-view');
 			}
-			$title = esc_html($title);
 
 			$arr_page_css_styles = array();
 			$user_can_edit_page = apply_filters("cms_tree_page_view_post_can_edit", current_user_can( $post_type_object->cap->edit_post, $page_id), $page_id);
@@ -1334,7 +1321,7 @@ function cms_tpv_print_childs($pageID, $view = "all", $arrOpenChilds = null, $po
 			?>
 			{
 				"data": {
-					"title": "<?php echo $title ?>",
+					"title": <?php echo json_encode($title) ?>,
 					"attr": {
 						"href": "<?php echo $editLink ?>"
 						<?php /* , "xid": "cms-tpv-<?php echo $onePage->ID ?>" */ ?>
@@ -1364,7 +1351,7 @@ function cms_tpv_print_childs($pageID, $view = "all", $arrOpenChilds = null, $po
 					"user_can_edit_page": "<?php echo (int) $user_can_edit_page ?>",
 					"user_can_add_page_inside": "<?php echo (int) $user_can_add_inside ?>",
 					"user_can_add_page_after": "<?php echo (int) $user_can_add_after ?>",
-					"post_title": "<?php echo $title ?>"
+					"post_title": <?php echo json_encode($title) ?>
 				}
 				<?php
 				// if id is in $arrOpenChilds then also output children on this one
