@@ -2,15 +2,16 @@
 Contributors: eskapism, MarsApril
 Donate link: http://eskapism.se/sida/donate/
 Tags: page, pages, posts, custom posts, tree, cms, dashboard, overview, drag-and-drop, rearrange, management, manage, admin
-Requires at least: 3.4
-Tested up to: 3.5
-Stable tag: 1.2
+Requires at least: 3.5.1
+Tested up to: 3.5.1
+Stable tag: 1.2.13
 
-Adds a tree view of all pages & custom posts. Get a great overview + options to drag & drop to reorder and option to add multiple pages at once.
+Adds a tree view of all pages & custom posts. Get a great overview + options to drag & drop to reorder & option to add multiple pages.
 
 == Description ==
 
 Adds a CMS-like tree overview of all your pages and custom posts to WordPress - much like the view often found in a page-focused CMS.
+
 Within this tree you can edit pages, view pages, add pages, search pages, and drag and drop pages to rearrange the order.
 
 CMS Tree Page View is a good alternative to plugins such as pageMash, WordPress Page Tree
@@ -37,19 +38,24 @@ Page management in WordPress won't get any easier than this!
 To show your pages on your website in the same order as they appear in this plugin, you must
 sort them by "menu order".
 
-´
+`
 // Example using query_posts
 $args = array(
+  'post_type' => 'page',
   'orderby'=> 'menu_order',
   'order'=>'ASC',
-  'post_type' => 'page',
 );
 $posts = query_posts($args);
 
 // Example using wp_query
-$query = new WP_Query( array( 'post_type' => 'page', 'orderby' => 'title menu_order', 'order' => 'ASC' ) );
+$args = array(
+	'post_type' => 'page',
+	'orderby' => 'menu_order',
+	'order' => 'ASC',
+);
+$query = new WP_Query( $args );
 
-´
+`
 
 #### Screencast
 Watch this screencast to see how easy you could be managing your pages:
@@ -75,6 +81,7 @@ This plugin is available in the following languages:
 * Danish
 * Lithuanian
 * Estonian
+* Finnish
 
 #### Always show your pages in the admin area
 If you want to always have a list of your pages available in your WordPress admin area, please check out the plugin
@@ -103,6 +110,61 @@ Now the tree with the pages will be visible both on the dashboard and in the men
 7. Quickly switch between regular list view and tree view using the switch icon
 
 == Changelog ==
+
+= 1.2.13 =
+- Added Serbo-Croatian translation by Andrijana Nikolic from [webhostinggeeks](http://webhostinggeeks.com/)
+
+= 1.2.12 =
+- Fixed search not working
+- Fix height of clear search icon
+
+= 1.2.11 =
+- Updated german translation
+- Updated POT file for translators
+
+= 1.2.10 =
+- New fix for wp-Typography. Thanks to eceleste for digging into the problem and fixing it. 
+
+= 1.2.9 =
+- Fixed an incompatibility with wp-Typography (http://wordpress.org/extend/plugins/wp-typography/). Fixes http://wordpress.org/support/topic/html-in-titles.
+
+= 1.2.8 =
+- Fix for post types with dashes in them. Fixes http://wordpress.org/support/topic/custom-posts-with-in-post_type.
+
+= 1.2.7 =
+- Fix some notice errors/warning. Props damienwhaley. Fixes http://wordpress.org/support/topic/fix-for-three-non-fatal-errors.
+
+= 1.2.6 =
+- Fixed loading CSS over HTTPS. 
+Fixes http://wordpress.org/support/topic/update-noticonscss-reference-in-stylescss-for-https-sites-too.
+- Fixed some styling issues in IE 8.
+
+= 1.2.5 =
+- Fixed some notice warnings
+- Added Finnish translation
+- Fixed a security issue. Thanks to Julio POTIER (<a href="http://secu.boiteaweb.fr/">http://secu.boiteaweb.fr/</a>) for finding and reporting.
+- Added nonce checks for options page and for adding new pages
+
+= 1.2.4 =
+- Small design changes for the icons in the post overview screen
+- Added actions to check permissions when adding pages with AJAX
+
+= 1.2.3 =
+- Removed an ugly pixel in the tree icon
+- Minor CSS changes to tree icon
+- Updated French translation
+
+= 1.2.2 =
+- Hide "inside" link if post type is draft, since you can't create new post inside a page with status draft (limitation/bug with Wordpress)
+- Added actions so other developers or plugins can control what pages/posts that are editiable and so on. Added filters are: cms_tree_page_view_post_can_edit, cms_tree_page_view_post_user_can_add_inside, cms_tree_page_view_post_user_can_add_after
+
+= 1.2.1 =
+- Fixed wrong count if WPML where activated and future or private posts existed for a language
+- Show info message if no posts found after fetching posts with AJAX
+- Updated Swedish translation
+- Updated Russian translation - hopefully it works this time!
+- Updated POT file
+- Minor language fixes, like actually loading plugin textdomain before using any texts...
 
 = 1.2 =
 - Added option to show the tree in the regular post overview screen. Makes the tree view fit into the regular workflow and GUI much better. To enable: go to settings > CMS Tree Page View > Tick the option "On post overview screen". Then go to for example the pages overview screen and in the upper right corner there will be an icon to switch between the regular list view and the tree view of this plugin.
