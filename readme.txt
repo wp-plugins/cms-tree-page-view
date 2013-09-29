@@ -111,7 +111,7 @@ Now the tree with the pages will be visible both on the dashboard and in the men
 
 == Changelog ==
 
-= 1.2.14
+= 1.2.14 =
 - Now the tree view is enabled by default for hiearchical post types. Should make it easier for new users to get started.
 - Removed some annoying calls to console.log().
 - Fixed bulk edit and quick edit not working for posts. Fixes http://wordpress.org/support/topic/breaks-bulk-edit-feature.
