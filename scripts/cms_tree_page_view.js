@@ -152,7 +152,7 @@ var cms_tree_page_view = (function ($) {
 	 */
 	my.log = function(what) {
 		if (typeof(window.console) === "object" && typeof(window.console.log) === "function" ) {
-			console.log(what);
+			// console.log(what);
 		}
 	};
 	 
@@ -173,6 +173,7 @@ jQuery(function($) {
 	// Globals, don't "var" them! :)
 	cms_tpv_tree = $("div.cms_tpv_container");
 	div_actions = $("div.cms_tpv_page_actions");
+	cms_tpv_message = $("div.cms_tpv_message");
 
 	// try to override css
 	var height = "20", height2 = "18", ins_height = "20";
@@ -215,6 +216,19 @@ jQuery(function($) {
 							"id": post_id
 						};
 					}
+				},
+				"success": function(data, status) {
+					
+					// If data is null or empty = show message about no nodes
+					if (data === null || !data) {
+						cms_tpv_message.html( "<p>" + cmstpv_l10n["No posts found"] + "</p>" );
+						cms_tpv_message.show();
+					} /*else {
+						cms_tpv_message.hide();
+					}*/
+
+				},
+				"error": function(data, status) {
 				}
 
 			}
@@ -249,6 +263,7 @@ jQuery(function($) {
 		
 		var isHierarchical = $(elm).closest(".cms_tpv_wrapper").find("[name=cms_tpv_meta_post_type_hierarchical]").val();
 		if (isHierarchical === "0") {
+			
 			// no move to children if not hierarchical
 			treeOptionsTmp.types = {
 				"types": {
@@ -257,8 +272,12 @@ jQuery(function($) {
 					}
 				}
 			};
+
 		}
 		
+		// set search url to include post type
+		treeOptionsTmp.search.ajax.url = ajaxurl + CMS_TPV_AJAXURL + CMS_TPV_VIEW + "&post_type=" + cms_tpv_get_post_type(this);
+
 		$elm.bind("search.jstree", function (event, data) {
 			if (data.rslt.nodes.length === 0) {
 				// no hits. doh.
@@ -288,9 +307,10 @@ function cms_tpv_mouseover(e) {
 
 /**
  * When tree is loaded: start hoverindenting stuff
+ * Is only fired when tree was loaded and contained stuff
  */
 function cms_tpv_tree_loaded(event, data) {
-
+		
 	var $container = jQuery(event.target);
 	var actions_div_doit = cms_tpv_get_page_actions_div_doit(event.target);
 
@@ -431,6 +451,7 @@ function cms_tpv_mouseover_li(e) {
 			$edit = div_actions_for_post_type.find(".cms_tpv_action_edit");
 			var editlink = $li.data("editlink");
 			$edit.attr("href", editlink);
+			$edit.removeClass("hidden");
 
 			// ..and some extras
 			div_actions_for_post_type.find(".cms_tpv_page_actions_modified_time").text($li.data("modified_time"));
@@ -444,6 +465,22 @@ function cms_tpv_mouseover_li(e) {
 			// add post id to data
 			div_actions_for_post_type.data("post_id", $li.data("post_id"));
 			
+
+			// check permissions, may the current user add page, after or inside
+			// If page has status draft then no one is allowed to add page inside
+			// div_actions_for_post_type.find(".cms_tpv_action_add_page_inside, .cms_tpv_action_add_page_inside").show();
+			div_actions_for_post_type.find(".cms_tpv_action_add_page_inside, .cms_tpv_action_add_page_inside").removeClass("hidden");
+			
+			var inside_allowed = true;
+			if ("draft" === $li.data("post_status")) {
+				inside_allowed = false;
+			}
+
+			if (!inside_allowed) {
+				//div_actions_for_post_type.find(".cms_tpv_action_add_page_inside").hide();
+			}
+
+
 			// position and show action div
 			var $a = $li.find("a");
 			var width = $a.outerWidth(true);
@@ -468,18 +505,30 @@ function cms_tpv_mouseover_li(e) {
 				div_actions_for_post_type.removeClass("cms_tpv_page_actions_visible_from_bottom");
 			}
 			
+			div_actions_for_post_type.addClass("cms_tpv_page_actions_visible");
+			
 			// check if user is allowed to edit page
 			var $cms_tpv_action_add_and_edit_page = div_actions_for_post_type.find(".cms_tpv_action_add_and_edit_page");
 			if ($li.data("user_can_edit_page") === "0") {
-				// nooope
-				$edit.hide();
-				$cms_tpv_action_add_and_edit_page.hide();
-			} else {
-				//$edit.show();
-				$cms_tpv_action_add_and_edit_page.show();
-				div_actions_for_post_type.addClass("cms_tpv_page_actions_visible");
+				$edit.addClass("hidden");
 			}
-			
+
+			$cms_tpv_add_position = div_actions_for_post_type.find(".cms_tpv_add_position");
+			$cms_tpv_add_position.removeClass("hidden");
+
+			$cms_tpv_action_add_page_after = div_actions_for_post_type.find(".cms_tpv_action_add_page_after");
+			$cms_tpv_action_add_page_after.removeClass("hidden");
+			if ($li.data("user_can_add_page_after") === "0") {
+				$cms_tpv_action_add_page_after.addClass("hidden");
+				$cms_tpv_add_position.addClass("hidden");
+			}
+
+			$cms_tpv_action_add_page_inside = div_actions_for_post_type.find(".cms_tpv_action_add_page_inside");
+			$cms_tpv_action_add_page_inside.removeClass("hidden");
+			if ($li.data("user_can_add_page_inside") === "0") {
+				$cms_tpv_action_add_page_inside.addClass("hidden");
+				$cms_tpv_add_position.addClass("hidden");
+			}
 
 		}
 	}
@@ -649,7 +698,7 @@ function cms_tpv_bind_clean_node() {
 				// post_status can be any value because of plugins like Edit flow
 				// check if we have an existing translation for the string, otherwise use the post status directly
 				var post_status_to_show = "";
-				if (post_status_to_show = cmstpv_l10n["Status_"+post_status + "_ucase"]) {
+				if (post_status_to_show = cmstpv_l10n["Status_" + post_status + "_ucase"]) {
 					// it's ok
 				} else {
 					post_status_to_show = post_status;
@@ -797,9 +846,10 @@ function cms_tpv_get_current_view(elm) {
  */
 function cms_tvp_set_view(view, elm) {
 
-	var $wrapper = jQuery(elm).closest(".cms_tpv_wrapper");
+	var $wrapper = jQuery(elm).closest(".cms_tpv_wrapper"),
+		div_actions_for_post_type = cms_tpv_get_page_actions_div(elm);
 
-	var div_actions_for_post_type = cms_tpv_get_page_actions_div(elm);
+	cms_tpv_message.hide();
 
 	$wrapper.append(div_actions_for_post_type);
 	$wrapper.find(".cms_tvp_view_all, .cms_tvp_view_public, .cms_tvp_view_trash").removeClass("current");
@@ -852,6 +902,7 @@ jQuery(function($) {
 			view_switch_list_a = view_switch_list.closest("a");
 
 		view_switch.append(view_switch_list_a);
+		view_switch.append(" ");
 
 	}
 	
