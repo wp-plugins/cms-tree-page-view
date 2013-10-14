@@ -112,10 +112,10 @@ Now the tree with the pages will be visible both on the dashboard and in the men
 
 == Changelog ==
 
-= 1.2.16
+= 1.2.16 =
 - Just a version bump to make wordpress.org see my changes...
 
-= 1.2.15
+= 1.2.15 =
 - Fixed a PHP shortcode.
 - Fixed arguments passed to filter get_pages.
 
