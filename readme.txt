@@ -114,7 +114,7 @@ Now the tree with the pages will be visible both on the dashboard and in the men
 == Changelog ==
 
 = 1.2.20 =
-- Removed part of a comment beacuse it mentionened a file on another domain and therefore violated the repository guidelines.
+- Removed part of a comment beacuse it mentionened a file on another domain and therefore violated the repository guidelines. Also moved some sprites in CSS from loading external to loading internal.
 
 = 1.2.19 =
 - Added action "cms_tree_page_view_node_move_finish" that is called after a page is moved with drag and drop. Useful to for example clear caches.
