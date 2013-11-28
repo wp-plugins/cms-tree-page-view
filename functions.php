@@ -441,7 +441,6 @@ function cmstpv_filter_views_edit_postsoverview($filter_var) {
 	if view-switch exists: add item to it
 	if view-switch not exists: add it + item to it
 
-	http://playground.ep/wordpress/wp-admin/images/list.png
 	*/
 	$mode = "tree";
 	$class = isset($_GET["mode"]) && $_GET["mode"] == $mode ? " class='current' " : "";
