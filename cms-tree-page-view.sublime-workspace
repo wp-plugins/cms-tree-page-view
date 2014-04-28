@@ -280,14 +280,6 @@
 	"buffers":
 	[
 		{
-			"file": "index.php",
-			"settings":
-			{
-				"buffer_size": 3156,
-				"line_ending": "Unix"
-			}
-		},
-		{
 			"file": "functions.php",
 			"settings":
 			{
@@ -299,7 +291,7 @@
 			"file": "readme.txt",
 			"settings":
 			{
-				"buffer_size": 25138,
+				"buffer_size": 25224,
 				"line_ending": "Unix"
 			}
 		},
@@ -524,6 +516,9 @@
 	},
 	"file_history":
 	[
+		"/Users/bonny/Dropbox/Plugins/GIT/cms-tree-page-view/subl",
+		"/Users/bonny/Dropbox/Plugins/GIT/cms-tree-page-view/index.php",
+		"/Users/bonny/Dropbox/Plugins/GIT/cms-tree-page-view/.gitignore",
 		"/Users/bonny/Dropbox/Plugins/GIT/cms-tree-page-view/readme.txt",
 		"/Users/bonny/Dropbox/Plugins/SVN/cms-tree-page-view/tags/1.2.14/readme.txt",
 		"/Users/bonny/Dropbox/Plugins/SVN/cms-tree-page-view/trunk/cms-tree-page-view.sublime-project",
@@ -648,10 +643,7 @@
 		"/Users/bonny/Dropbox/Localhost/EarthPeople/neverever/app/wp/wp-content/themes/neverever/404.php",
 		"/Users/bonny/Dropbox/Localhost/EarthPeople/neverever/app/wp/wp-content/themes/neverever/.bowerrc",
 		"/Users/bonny/Dropbox/Localhost/EarthPeople/neverever/app/wp/wp-content/themes/neverever/js/bower.json",
-		"/Users/bonny/Dropbox/Localhost/EarthPeople/neverever/app/wp/wp-content/themes/neverever/js/jquery/bower.json",
-		"/Users/bonny/Dropbox/Localhost/EarthPeople/neverever/app/wp/wp-content/themes/neverever/js/jquery-extra-selectors.js",
-		"/Users/bonny/Dropbox/Localhost/EarthPeople/neverever/app/wp/wp-includes/theme-compat/footer.php",
-		"/Users/bonny/Dropbox/Webb/bonnys-wordpress-stuff/ep-theme/404.php"
+		"/Users/bonny/Dropbox/Localhost/EarthPeople/neverever/app/wp/wp-content/themes/neverever/js/jquery/bower.json"
 	],
 	"find":
 	{
@@ -836,131 +828,11 @@
 	"groups":
 	[
 		{
-			"selected": 2,
+			"selected": 0,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "index.php",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 3156,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								3031,
-								3023
-							]
-						],
-						"settings":
-						{
-							"annotations":
-							[
-								"TODO",
-								"README",
-								"FIXME"
-							],
-							"csslint_options":
-							{
-								"adjoining-classes": "warning",
-								"box-model": true,
-								"box-sizing": "warning",
-								"compatible-vendor-prefixes": "warning",
-								"display-property-grouping": true,
-								"duplicate-background-images": "warning",
-								"duplicate-properties": true,
-								"empty-rules": true,
-								"errors": true,
-								"fallback-colors": "warning",
-								"floats": "warning",
-								"font-faces": "warning",
-								"font-sizes": "warning",
-								"gradients": "warning",
-								"ids": "warning",
-								"import": "warning",
-								"important": "warning",
-								"known-properties": true,
-								"outline-none": "warning",
-								"overqualified-elements": "warning",
-								"qualified-headings": "warning",
-								"regex-selectors": "warning",
-								"rules-count": "warning",
-								"shorthand": "warning",
-								"star-property-hack": "warning",
-								"text-indent": "warning",
-								"underscore-property-hack": "warning",
-								"unique-headings": "warning",
-								"universal-selector": "warning",
-								"vendor-prefix": true,
-								"zero-units": "warning"
-							},
-							"function_name_status_row": 77,
-							"gjslint_ignore":
-							[
-								110
-							],
-							"gjslint_options":
-							[
-							],
-							"javascript_linter": "jshint",
-							"jshint_options":
-							{
-								"browser": true,
-								"evil": true,
-								"regexdash": true,
-								"sub": true,
-								"trailing": true,
-								"wsh": true
-							},
-							"pep8": true,
-							"pep8_ignore":
-							[
-								"E501"
-							],
-							"perl_linter": "perlcritic",
-							"pyflakes_ignore":
-							[
-							],
-							"pyflakes_ignore_import_*": true,
-							"sublimelinter": true,
-							"sublimelinter_delay": 2,
-							"sublimelinter_disable":
-							[
-							],
-							"sublimelinter_executable_map":
-							{
-							},
-							"sublimelinter_fill_outlines": false,
-							"sublimelinter_gutter_marks": true,
-							"sublimelinter_gutter_marks_theme": "simple",
-							"sublimelinter_mark_style": "none",
-							"sublimelinter_notes": false,
-							"sublimelinter_objj_check_ascii": false,
-							"sublimelinter_popup_errors_on_save": false,
-							"sublimelinter_syntax_map":
-							{
-								"C++": "c",
-								"Python Django": "python",
-								"Ruby on Rails": "ruby"
-							},
-							"sublimelinter_wrap_find": true,
-							"syntax": "Packages/PHP/PHP.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 642.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
-					"type": "text"
-				},
-				{
-					"buffer": 1,
 					"file": "functions.php",
 					"semi_transient": false,
 					"settings":
@@ -972,8 +844,8 @@
 						"selection":
 						[
 							[
-								0,
-								0
+								616,
+								616
 							]
 						],
 						"settings":
@@ -1018,7 +890,7 @@
 								"vendor-prefix": true,
 								"zero-units": "warning"
 							},
-							"function_name_status_row": 0,
+							"function_name_status_row": 32,
 							"gjslint_ignore":
 							[
 								110
@@ -1075,24 +947,24 @@
 						"translation.y": 390.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 0,
 					"type": "text"
 				},
 				{
-					"buffer": 2,
+					"buffer": 1,
 					"file": "readme.txt",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 25138,
+						"buffer_size": 25224,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								289,
-								283
+								0,
+								0
 							]
 						],
 						"settings":
@@ -1104,11 +976,11 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 1,
 					"type": "text"
 				},
 				{
-					"buffer": 3,
+					"buffer": 2,
 					"file": "scripts/cms_tree_page_view.js",
 					"semi_transient": false,
 					"settings":
@@ -1134,11 +1006,11 @@
 						"translation.y": 3051.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 3,
+					"stack_index": 2,
 					"type": "text"
 				},
 				{
-					"buffer": 4,
+					"buffer": 3,
 					"file": "styles/styles.css",
 					"semi_transient": false,
 					"settings":
@@ -1710,7 +1582,7 @@
 						"translation.y": 7605.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 4,
+					"stack_index": 3,
 					"type": "text"
 				}
 			]
